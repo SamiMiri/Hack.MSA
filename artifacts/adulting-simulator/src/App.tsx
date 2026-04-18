@@ -2,10 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameState } from './hooks/useGameState';
 import { SCENARIOS, SceneChoice } from './data/scenarios';
+import { CHARACTERS, CharacterOption } from './data/characters';
 import {
   Coins, Zap, BookOpen, Trophy, Play, RotateCcw,
-  ArrowRight, TrendingUp, TrendingDown, Minus, ChevronRight,
-  Sun, Moon, ShieldAlert
+  ArrowRight, TrendingUp, TrendingDown, ChevronRight,
+  Sun, Moon, ShieldAlert, Sparkles, ChevronLeft, User,
+  Loader2, HelpCircle
 } from 'lucide-react';
 
 function useTheme() {
@@ -53,6 +55,53 @@ function ThemeToggle({ dark, toggle }: { dark: boolean; toggle: () => void }) {
   );
 }
 
+interface AiTip {
+  explanation: string;
+  followUpQuestions: string[];
+}
+
+function useAiTip(
+  feedback: { text: string; choiceLabel: string; sceneTitle: string } | null,
+  scenarioName: string,
+  characterName: string
+) {
+  const [tip, setTip] = useState<AiTip | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!feedback) {
+      setTip(null);
+      return;
+    }
+    setTip(null);
+    setLoading(true);
+    const controller = new AbortController();
+
+    fetch('/api/explain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        choice: feedback.choiceLabel,
+        feedback: feedback.text,
+        scene: feedback.sceneTitle,
+        character: characterName,
+        scenarioName,
+      }),
+    })
+      .then(r => r.json())
+      .then((data: AiTip) => {
+        if (data.explanation) setTip(data);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+
+    return () => controller.abort();
+  }, [feedback?.choiceLabel, feedback?.sceneTitle]);
+
+  return { tip, loading };
+}
+
 export default function App() {
   const gameState = useGameState();
   const { dark, toggle } = useTheme();
@@ -63,6 +112,9 @@ export default function App() {
       <AnimatePresence mode="wait">
         {gameState.gameState === 'menu' && (
           <MenuScreen key="menu" {...gameState} />
+        )}
+        {gameState.gameState === 'character-select' && (
+          <CharacterSelectScreen key="character-select" {...gameState} />
         )}
         {(gameState.gameState === 'playing' || gameState.gameState === 'consequence') && (
           <GameScreen key="game" {...gameState} />
@@ -75,7 +127,7 @@ export default function App() {
   );
 }
 
-function MenuScreen({ startGame, bestScores }: ReturnType<typeof useGameState>) {
+function MenuScreen({ chooseScenario, bestScores }: ReturnType<typeof useGameState>) {
   const ratingColor: Record<string, string> = {
     'You Made It': 'text-emerald-400',
     'Getting By': 'text-amber-400',
@@ -105,7 +157,7 @@ function MenuScreen({ startGame, bestScores }: ReturnType<typeof useGameState>) 
           return (
             <motion.button
               key={scenario.id}
-              onClick={() => startGame(scenario.id)}
+              onClick={() => chooseScenario(scenario.id)}
               whileHover={{ scale: 1.015 }}
               whileTap={{ scale: 0.97 }}
               data-testid={`scenario-card-${scenario.id}`}
@@ -144,6 +196,127 @@ function MenuScreen({ startGame, bestScores }: ReturnType<typeof useGameState>) 
   );
 }
 
+function CharacterSelectScreen({ pendingScenarioId, confirmCharacter, returnToMenu }: ReturnType<typeof useGameState>) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const scenario = SCENARIOS.find(s => s.id === pendingScenarioId);
+
+  const statPreview = (char: CharacterOption) => {
+    const baseMoney = scenario?.startMoney ?? 1200;
+    const money = Math.floor(baseMoney * char.moneyMult);
+    return { money, stress: char.stressBonus, knowledge: Math.max(0, char.knowledgeBonus) };
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 40 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -40 }}
+      className="flex flex-col min-h-[100dvh] p-5 max-w-md mx-auto"
+    >
+      <div className="mt-6 mb-8">
+        <button
+          onClick={returnToMenu}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+          data-testid="button-back-to-menu"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back
+        </button>
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-3">
+            <User className="w-3.5 h-3.5 text-primary" />
+            <span className="text-primary text-xs font-bold uppercase tracking-widest">Choose Your Character</span>
+          </div>
+          {scenario && (
+            <p className="text-sm text-muted-foreground mt-1">Playing: <span className="text-foreground font-semibold">{scenario.name}</span></p>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-3 flex-1">
+        {CHARACTERS.map((char) => {
+          const preview = statPreview(char);
+          const isSelected = selected === char.id;
+          return (
+            <motion.button
+              key={char.id}
+              onClick={() => setSelected(char.id)}
+              whileHover={{ scale: 1.015 }}
+              whileTap={{ scale: 0.97 }}
+              data-testid={`character-${char.id}`}
+              className={`w-full text-left rounded-2xl border p-5 transition-all duration-150 ${
+                isSelected
+                  ? 'bg-primary/10 border-primary/40 shadow-sm shadow-primary/10'
+                  : 'bg-card border-card-border hover:border-primary/20'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <h3 className={`text-lg font-bold leading-tight ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                    {char.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">{char.tagline}</p>
+                </div>
+                <div className={`w-6 h-6 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-all ${
+                  isSelected ? 'border-primary bg-primary' : 'border-border'
+                }`}>
+                  {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                {char.traits.map(t => (
+                  <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-muted-foreground">
+                    {t}
+                  </span>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border">
+                <div className="text-center">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Cash</p>
+                  <p className="text-sm font-black text-emerald-400">${preview.money.toLocaleString()}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Stress</p>
+                  <p className={`text-sm font-black ${preview.stress > 0 ? 'text-red-400' : 'text-foreground/50'}`}>
+                    {preview.stress > 0 ? `+${preview.stress}` : '0'}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Know</p>
+                  <p className={`text-sm font-black ${preview.knowledge > 0 ? 'text-sky-400' : preview.knowledge < 0 ? 'text-red-400' : 'text-foreground/50'}`}>
+                    {preview.knowledge > 0 ? `+${preview.knowledge}` : preview.knowledge < 0 ? preview.knowledge : '0'}
+                  </p>
+                </div>
+              </div>
+            </motion.button>
+          );
+        })}
+      </div>
+
+      <motion.button
+        onClick={() => selected && confirmCharacter(selected)}
+        disabled={!selected}
+        whileHover={selected ? { scale: 1.02 } : {}}
+        whileTap={selected ? { scale: 0.97 } : {}}
+        data-testid="button-confirm-character"
+        className={`w-full mt-5 py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all ${
+          selected
+            ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+            : 'bg-card border border-card-border text-muted-foreground cursor-not-allowed'
+        }`}
+      >
+        {selected ? (
+          <>Start Scenario <ArrowRight className="w-5 h-5" /></>
+        ) : (
+          'Select a character to continue'
+        )}
+      </motion.button>
+    </motion.div>
+  );
+}
+
 interface StatConfig {
   key: keyof ReturnType<typeof useGameState>['stats'];
   label: string;
@@ -176,19 +349,17 @@ function StatRow({
   const Icon = config.icon;
   const hasChanged = delta !== undefined && delta !== 0;
   const isReallyGood = config.invertGood ? (delta ?? 0) < 0 : (delta ?? 0) > 0;
-  
+
   let pct = 0;
   if (config.max) {
     if (config.key === 'score') {
-       pct = Math.min(100, Math.max(0, ((value + 50) / (config.max + 50)) * 100)); // Offset for negative scores visually
+      pct = Math.min(100, Math.max(0, ((value + 50) / (config.max + 50)) * 100));
     } else {
-       pct = Math.min(100, Math.max(0, (value / config.max) * 100));
+      pct = Math.min(100, Math.max(0, (value / config.max) * 100));
     }
   }
 
   const displayValue = config.format === 'currency' ? `$${value.toLocaleString()}` : String(value);
-
-  // Score can be negative, color it red if so
   const valueColor = config.key === 'score' && value < 0 ? 'text-red-400' : 'text-foreground';
 
   return (
@@ -258,16 +429,62 @@ const FLAG_DISPLAY_MAP: Record<string, string> = {
   "w4_wrong": "W-4 Wrong"
 };
 
-function GameScreen({ currentScenario, currentSceneId, stats, lastDeltas, flags, pendingFeedback, gameState, makeChoice, continueGame }: ReturnType<typeof useGameState>) {
+function AiTipPanel({ tip, loading }: { tip: { explanation: string; followUpQuestions: string[] } | null; loading: boolean }) {
+  if (!loading && !tip) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3, type: 'spring', stiffness: 280, damping: 28 }}
+      className="bg-card border border-primary/20 rounded-2xl p-5 relative overflow-hidden"
+    >
+      <div className="absolute top-0 left-0 bottom-0 w-1 rounded-l-2xl bg-primary" />
+
+      <div className="flex items-center gap-2 mb-3">
+        <Sparkles className="w-4 h-4 text-primary shrink-0" />
+        <p className="text-[11px] font-bold text-primary uppercase tracking-widest">Real World Context</p>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm">Thinking...</span>
+        </div>
+      ) : tip ? (
+        <>
+          <p className="text-sm text-foreground leading-relaxed mb-4">{tip.explanation}</p>
+          {tip.followUpQuestions.length > 0 && (
+            <div className="space-y-2">
+              {tip.followUpQuestions.map((q, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <HelpCircle className="w-3.5 h-3.5 text-primary/60 shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground leading-relaxed">{q}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      ) : null}
+    </motion.div>
+  );
+}
+
+function GameScreen({ currentScenario, currentSceneId, stats, lastDeltas, flags, pendingFeedback, gameState, selectedCharacter, makeChoice, continueGame }: ReturnType<typeof useGameState>) {
   if (!currentScenario) return null;
   const scene = currentScenario.scenes[currentSceneId];
   if (!scene) return null;
+
+  const { tip, loading } = useAiTip(
+    pendingFeedback,
+    currentScenario.name,
+    selectedCharacter?.name ?? 'Young Adult'
+  );
 
   // Stable shuffle for choices based on scene ID
   const shuffledChoices = useMemo(() => {
     if (!scene.choices) return [];
     const choices = [...scene.choices];
-    // Simple seeded shuffle using scene string
     let seed = scene.id.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
     for (let i = choices.length - 1; i > 0; i--) {
       const j = Math.floor(Math.abs(Math.sin(seed++) * 10000) % (i + 1));
@@ -293,6 +510,12 @@ function GameScreen({ currentScenario, currentSceneId, stats, lastDeltas, flags,
             <StatRow key={cfg.key} config={cfg} value={stats[cfg.key]} delta={lastDeltas?.[cfg.key]} />
           ))}
         </div>
+        {selectedCharacter && (
+          <div className="mt-2 flex items-center gap-1.5">
+            <User className="w-3 h-3 text-muted-foreground/50" />
+            <span className="text-[10px] text-muted-foreground/50 font-medium">{selectedCharacter.name}</span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -340,7 +563,7 @@ function GameScreen({ currentScenario, currentSceneId, stats, lastDeltas, flags,
                         animate={{ opacity: 1, y: 0, transition: { delay: i * 0.07 } }}
                         whileHover={{ scale: 1.015 }}
                         whileTap={{ scale: 0.97 }}
-                        onClick={() => makeChoice(choice)}
+                        onClick={() => makeChoice(choice, scene.title)}
                         data-testid={`choice-${choice.id}`}
                         className={`w-full text-left flex items-start gap-4 p-4 rounded-2xl border transition-all duration-150 ${colors.base}`}
                       >
@@ -411,12 +634,14 @@ function GameScreen({ currentScenario, currentSceneId, stats, lastDeltas, flags,
                 </div>
               )}
 
+              <AiTipPanel tip={tip} loading={loading} />
+
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={continueGame}
                 data-testid="button-continue"
-                className="w-full mt-4 py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                className="w-full mt-2 py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
               >
                 Continue <ArrowRight className="w-5 h-5" />
               </motion.button>
@@ -428,7 +653,7 @@ function GameScreen({ currentScenario, currentSceneId, stats, lastDeltas, flags,
   );
 }
 
-function OutcomeScreen({ stats, currentScenario, currentSceneId, calculateRating, flags, returnToMenu, startGame }: ReturnType<typeof useGameState>) {
+function OutcomeScreen({ stats, currentScenario, currentSceneId, calculateRating, flags, returnToMenu, replayScenario }: ReturnType<typeof useGameState>) {
   if (!currentScenario) return null;
   const scene = currentScenario.scenes[currentSceneId];
   if (!scene || !scene.isEnding) return null;
@@ -443,6 +668,8 @@ function OutcomeScreen({ stats, currentScenario, currentSceneId, calculateRating
 
   const RatingIcon = ratingConfig.icon;
   const statConfigs = getStatConfigs(currentScenario.startMoney);
+
+  const badFlags = Array.from(flags).map(f => FLAG_DISPLAY_MAP[f]).filter(Boolean);
 
   return (
     <motion.div
@@ -485,7 +712,7 @@ function OutcomeScreen({ stats, currentScenario, currentSceneId, calculateRating
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="bg-card border border-card-border rounded-2xl p-5 mb-6"
+        className="bg-card border border-card-border rounded-2xl p-5 mb-4"
       >
         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Final Stats</p>
         <div className="space-y-4">
@@ -495,14 +722,32 @@ function OutcomeScreen({ stats, currentScenario, currentSceneId, calculateRating
         </div>
       </motion.div>
 
+      {badFlags.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-5 mb-4"
+        >
+          <p className="text-[11px] font-bold text-amber-500 uppercase tracking-widest mb-3">Flags Earned</p>
+          <div className="flex flex-wrap gap-2">
+            {badFlags.map(f => (
+              <span key={f} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-bold">
+                <ShieldAlert className="w-3 h-3" /> {f}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        transition={{ delay: 0.6 }}
         className="space-y-3 mt-auto"
       >
         <button
-          onClick={() => startGame(currentScenario.id)}
+          onClick={replayScenario}
           data-testid="button-replay"
           className="w-full py-4 rounded-2xl bg-card border border-card-border text-foreground font-bold text-base flex items-center justify-center gap-2"
         >
