@@ -4,14 +4,62 @@ import { useGameState } from './hooks/useGameState';
 import { SCENARIOS } from './data/scenarios';
 import {
   Coins, Zap, CreditCard, Heart, Play, RotateCcw,
-  ArrowRight, TrendingUp, TrendingDown, Trophy, Minus, ChevronRight
+  ArrowRight, TrendingUp, TrendingDown, Trophy, Minus, ChevronRight,
+  Sun, Moon
 } from 'lucide-react';
+
+function useTheme() {
+  const [dark, setDark] = useState<boolean>(() => {
+    const stored = localStorage.getItem('adulting-sim-theme');
+    if (stored !== null) return stored === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (dark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('adulting-sim-theme', dark ? 'dark' : 'light');
+  }, [dark]);
+
+  return { dark, toggle: () => setDark(d => !d) };
+}
+
+function ThemeToggle({ dark, toggle }: { dark: boolean; toggle: () => void }) {
+  return (
+    <motion.button
+      onClick={toggle}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      data-testid="button-theme-toggle"
+      className="fixed top-4 right-4 z-[100] w-10 h-10 rounded-xl bg-card border border-card-border shadow-sm flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+      aria-label="Toggle theme"
+    >
+      <AnimatePresence mode="wait">
+        {dark ? (
+          <motion.span key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.18 }}>
+            <Sun className="w-5 h-5" />
+          </motion.span>
+        ) : (
+          <motion.span key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.18 }}>
+            <Moon className="w-5 h-5" />
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.button>
+  );
+}
 
 export default function App() {
   const gameState = useGameState();
+  const { dark, toggle } = useTheme();
 
   return (
     <div className="min-h-[100dvh] w-full bg-background text-foreground overflow-hidden font-sans">
+      <ThemeToggle dark={dark} toggle={toggle} />
       <AnimatePresence mode="wait">
         {gameState.gameState === 'menu' && (
           <MenuScreen key="menu" {...gameState} />
@@ -51,7 +99,7 @@ function MenuScreen({ startGame, bestScores }: ReturnType<typeof useGameState>) 
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
           <span className="text-primary text-xs font-bold uppercase tracking-widest">Life Sim</span>
         </div>
-        <h1 className="text-5xl font-extrabold tracking-tight text-white mb-3 leading-none">
+        <h1 className="text-5xl font-extrabold tracking-tight text-foreground mb-3 leading-none">
           Adulting<br />Simulator
         </h1>
         <p className="text-muted-foreground text-base">Make choices. Face consequences. Try to survive.</p>
@@ -74,7 +122,7 @@ function MenuScreen({ startGame, bestScores }: ReturnType<typeof useGameState>) 
                 style={{ background: 'radial-gradient(ellipse at top left, hsl(262 83% 68% / 0.06), transparent 70%)' }}
               />
               <div className="flex items-start justify-between gap-3 mb-3">
-                <h2 className="text-xl font-bold text-white leading-tight">{scenario.title}</h2>
+                <h2 className="text-xl font-bold text-foreground leading-tight">{scenario.title}</h2>
                 <span className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-full border ${difficultyColor[scenario.difficulty] ?? 'text-muted-foreground bg-muted border-border'}`}>
                   {scenario.difficulty}
                 </span>
@@ -144,7 +192,7 @@ function StatRow({
           <span className="text-[11px] font-bold uppercase tracking-wider">{config.label}</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-sm font-black text-white">{displayValue}</span>
+          <span className="text-sm font-black text-foreground">{displayValue}</span>
           <AnimatePresence>
             {hasChanged && (
               <motion.span
@@ -224,7 +272,7 @@ function GameScreen({ currentScenario, decisionIndex, stats, lastDeltas, lastCho
               transition={{ type: 'spring', stiffness: 280, damping: 28 }}
               className="p-5 pt-7 pb-10"
             >
-              <p className="text-2xl font-bold text-white leading-snug mb-8">{decision.prompt}</p>
+              <p className="text-2xl font-bold text-foreground leading-snug mb-8">{decision.prompt}</p>
 
               <div className="space-y-3">
                 {decision.choices.map((choice, i) => {
@@ -243,7 +291,7 @@ function GameScreen({ currentScenario, decisionIndex, stats, lastDeltas, lastCho
                       <span className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black ${colors.label}`}>
                         {colors.letter}
                       </span>
-                      <span className="text-base font-semibold text-white leading-snug pt-0.5">{choice.text}</span>
+                      <span className="text-base font-semibold text-foreground leading-snug pt-0.5">{choice.text}</span>
                     </motion.button>
                   );
                 })}
@@ -260,7 +308,7 @@ function GameScreen({ currentScenario, decisionIndex, stats, lastDeltas, lastCho
               <div className="bg-card border border-card-border rounded-2xl p-5 relative overflow-hidden">
                 <div className="absolute top-0 left-0 bottom-0 w-1 bg-primary rounded-l-2xl" />
                 <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">What happened</p>
-                <p className="text-xl font-bold text-white leading-snug">{lastChoice?.consequenceText}</p>
+                <p className="text-xl font-bold text-foreground leading-snug">{lastChoice?.consequenceText}</p>
               </div>
 
               {lastChoice && (
@@ -395,7 +443,7 @@ function OutcomeScreen({ stats, currentScenario, calculateRating, history, retur
                   <Minus className="w-3 h-3 text-amber-400" />
                 </span>
                 <span className="text-foreground/80 leading-relaxed">
-                  <span className="font-semibold text-white">{c.text}</span> — {c.consequenceText}
+                  <span className="font-semibold text-foreground">{c.text}</span> — {c.consequenceText}
                 </span>
               </li>
             ))}
@@ -412,7 +460,7 @@ function OutcomeScreen({ stats, currentScenario, calculateRating, history, retur
         <button
           onClick={() => startGame(currentScenario.id)}
           data-testid="button-replay"
-          className="w-full py-4 rounded-2xl bg-card border border-card-border text-white font-bold text-base flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-2xl bg-card border border-card-border text-foreground font-bold text-base flex items-center justify-center gap-2"
         >
           <RotateCcw className="w-4 h-4" /> Try Again
         </button>
