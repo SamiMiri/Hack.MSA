@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameState } from './hooks/useGameState';
-import { SCENARIOS } from './data/scenarios';
+import { SCENARIOS, SceneChoice } from './data/scenarios';
 import {
-  Coins, Zap, CreditCard, Heart, Play, RotateCcw,
-  ArrowRight, TrendingUp, TrendingDown, Trophy, Minus, ChevronRight,
-  Sun, Moon
+  Coins, Zap, BookOpen, Trophy, Play, RotateCcw,
+  ArrowRight, TrendingUp, TrendingDown, Minus, ChevronRight,
+  Sun, Moon, ShieldAlert
 } from 'lucide-react';
 
 function useTheme() {
@@ -76,16 +76,10 @@ export default function App() {
 }
 
 function MenuScreen({ startGame, bestScores }: ReturnType<typeof useGameState>) {
-  const difficultyColor: Record<string, string> = {
-    Easy: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30',
-    Medium: 'text-amber-400 bg-amber-400/10 border-amber-400/30',
-    Hard: 'text-red-400 bg-red-400/10 border-red-400/30',
-  };
-
   const ratingColor: Record<string, string> = {
-    Thriving: 'text-emerald-400',
-    Surviving: 'text-amber-400',
-    Struggling: 'text-red-400',
+    'You Made It': 'text-emerald-400',
+    'Getting By': 'text-amber-400',
+    'Hard Lessons': 'text-red-400',
   };
 
   return (
@@ -106,7 +100,7 @@ function MenuScreen({ startGame, bestScores }: ReturnType<typeof useGameState>) 
       </div>
 
       <div className="w-full space-y-3">
-        {SCENARIOS.map((scenario, idx) => {
+        {SCENARIOS.map((scenario) => {
           const best = bestScores[scenario.id];
           return (
             <motion.button
@@ -121,20 +115,19 @@ function MenuScreen({ startGame, bestScores }: ReturnType<typeof useGameState>) 
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
                 style={{ background: 'radial-gradient(ellipse at top left, hsl(262 83% 68% / 0.06), transparent 70%)' }}
               />
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <h2 className="text-xl font-bold text-foreground leading-tight">{scenario.title}</h2>
-                <span className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-full border ${difficultyColor[scenario.difficulty] ?? 'text-muted-foreground bg-muted border-border'}`}>
-                  {scenario.difficulty}
-                </span>
+              <div className="flex flex-col gap-1 mb-3">
+                <h2 className="text-xl font-bold text-foreground leading-tight">{scenario.name}</h2>
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{scenario.who}</span>
               </div>
-              <div className="flex items-center justify-between">
+              <p className="text-sm text-foreground/80 mb-4 line-clamp-2">{scenario.desc}</p>
+              <div className="flex items-center justify-between pt-3 border-t border-border">
                 <span className="text-sm text-muted-foreground">{scenario.estimatedTime}</span>
                 {best ? (
-                  <span className={`text-sm font-bold ${ratingColor[best.rating]}`}>
+                  <span className={`text-sm font-bold ${ratingColor[best.rating] || 'text-primary'}`}>
                     Best: {best.rating}
                   </span>
                 ) : (
-                  <span className="text-sm text-muted-foreground flex items-center gap-1">
+                  <span className="text-sm text-primary font-medium flex items-center gap-1">
                     Play <ChevronRight className="w-4 h-4" />
                   </span>
                 )}
@@ -157,17 +150,19 @@ interface StatConfig {
   icon: React.ElementType;
   color: string;
   barColor: string;
-  max: number;
+  max?: number;
   format: 'currency' | 'number';
   invertGood?: boolean;
 }
 
-const STAT_CONFIGS: StatConfig[] = [
-  { key: 'money',     label: 'Money',   icon: Coins,      color: 'text-emerald-400', barColor: 'bg-emerald-400', max: 4000, format: 'currency' },
-  { key: 'happiness', label: 'Mood',    icon: Heart,      color: 'text-pink-400',    barColor: 'bg-pink-400',    max: 100,  format: 'number' },
-  { key: 'credit',    label: 'Credit',  icon: CreditCard, color: 'text-sky-400',     barColor: 'bg-sky-400',     max: 850,  format: 'number' },
-  { key: 'stress',    label: 'Stress',  icon: Zap,        color: 'text-amber-400',   barColor: 'bg-amber-400',   max: 100,  format: 'number', invertGood: true },
-];
+function getStatConfigs(startMoney: number): StatConfig[] {
+  return [
+    { key: 'money',     label: 'Cash',    icon: Coins,    color: 'text-emerald-400', barColor: 'bg-emerald-400', max: Math.max(startMoney * 3, 5000), format: 'currency' },
+    { key: 'stress',    label: 'Stress',  icon: Zap,      color: 'text-red-400',     barColor: 'bg-red-400',     max: 100,  format: 'number', invertGood: true },
+    { key: 'knowledge', label: 'Know',    icon: BookOpen, color: 'text-sky-400',     barColor: 'bg-sky-400',     max: 30,   format: 'number' },
+    { key: 'score',     label: 'Score',   icon: Trophy,   color: 'text-violet-400',  barColor: 'bg-violet-400',  max: 80,   format: 'number' },
+  ];
+}
 
 function StatRow({
   config,
@@ -181,8 +176,20 @@ function StatRow({
   const Icon = config.icon;
   const hasChanged = delta !== undefined && delta !== 0;
   const isReallyGood = config.invertGood ? (delta ?? 0) < 0 : (delta ?? 0) > 0;
-  const pct = Math.min(100, Math.max(0, (value / config.max) * 100));
+  
+  let pct = 0;
+  if (config.max) {
+    if (config.key === 'score') {
+       pct = Math.min(100, Math.max(0, ((value + 50) / (config.max + 50)) * 100)); // Offset for negative scores visually
+    } else {
+       pct = Math.min(100, Math.max(0, (value / config.max) * 100));
+    }
+  }
+
   const displayValue = config.format === 'currency' ? `$${value.toLocaleString()}` : String(value);
+
+  // Score can be negative, color it red if so
+  const valueColor = config.key === 'score' && value < 0 ? 'text-red-400' : 'text-foreground';
 
   return (
     <div className="flex-1 min-w-0">
@@ -192,7 +199,7 @@ function StatRow({
           <span className="text-[11px] font-bold uppercase tracking-wider">{config.label}</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-sm font-black text-foreground">{displayValue}</span>
+          <span className={`text-sm font-black ${valueColor}`}>{displayValue}</span>
           <AnimatePresence>
             {hasChanged && (
               <motion.span
@@ -209,14 +216,16 @@ function StatRow({
           </AnimatePresence>
         </div>
       </div>
-      <div className="h-2 w-full bg-white/8 rounded-full overflow-hidden">
-        <motion.div
-          className={`h-full rounded-full ${config.barColor}`}
-          initial={false}
-          animate={{ width: `${pct}%` }}
-          transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-        />
-      </div>
+      {config.max && (
+        <div className="h-2 w-full bg-white/8 rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full ${config.barColor}`}
+            initial={false}
+            animate={{ width: `${pct}%` }}
+            transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -228,35 +237,61 @@ const CHOICE_COLORS = [
   { base: 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-400', label: 'bg-amber-500 text-black', letter: 'D' },
 ];
 
-function GameScreen({ currentScenario, decisionIndex, stats, lastDeltas, lastChoice, gameState, makeChoice, continueGame }: ReturnType<typeof useGameState>) {
+const FLAG_DISPLAY_MAP: Record<string, string> = {
+  "irs_risk": "IRS Watching",
+  "fugitive": "FUGITIVE",
+  "no_insurance_car": "Driving Uninsured",
+  "credit_card_debt": "CC Debt",
+  "money_mule": "Suspicious Activity",
+  "felony_record": "Felony Record",
+  "evaded_police": "Evaded Police",
+  "missed_jury": "Missed Jury",
+  "tax_fraud": "Tax Fraud",
+  "scammed": "Got Scammed",
+  "bad_lease": "Bad Lease",
+  "lease_violation": "Lease Violation",
+  "utility_scam": "Utility Trap",
+  "eviction_record": "Eviction Record",
+  "noncompete": "Non-Compete",
+  "signed_blind": "Signed Blind",
+  "sued": "Being Sued",
+  "w4_wrong": "W-4 Wrong"
+};
+
+function GameScreen({ currentScenario, currentSceneId, stats, lastDeltas, flags, pendingFeedback, gameState, makeChoice, continueGame }: ReturnType<typeof useGameState>) {
   if (!currentScenario) return null;
-  const decision = currentScenario.decisions[decisionIndex];
-  const total = currentScenario.decisions.length;
+  const scene = currentScenario.scenes[currentSceneId];
+  if (!scene) return null;
+
+  // Stable shuffle for choices based on scene ID
+  const shuffledChoices = useMemo(() => {
+    if (!scene.choices) return [];
+    const choices = [...scene.choices];
+    // Simple seeded shuffle using scene string
+    let seed = scene.id.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    for (let i = choices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.abs(Math.sin(seed++) * 10000) % (i + 1));
+      [choices[i], choices[j]] = [choices[j], choices[i]];
+    }
+    return choices;
+  }, [scene.id, scene.choices]);
+
+  const statConfigs = getStatConfigs(currentScenario.startMoney);
+  const visibleFlags = Array.from(flags).map(f => FLAG_DISPLAY_MAP[f]).filter(Boolean);
 
   return (
     <div className="flex flex-col min-h-[100dvh] max-w-md mx-auto bg-background">
       {/* HUD */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border px-4 pt-4 pb-3">
-        <div className="flex gap-3 mb-3">
-          {STAT_CONFIGS.map(cfg => (
-            <StatRow
-              key={cfg.key}
-              config={cfg}
-              value={stats[cfg.key]}
-              delta={lastDeltas?.[cfg.key]}
-            />
+        <div className="flex gap-3 mb-2">
+          {statConfigs.slice(0, 2).map(cfg => (
+            <StatRow key={cfg.key} config={cfg} value={stats[cfg.key]} delta={lastDeltas?.[cfg.key]} />
           ))}
         </div>
-        <div className="w-full bg-white/6 rounded-full h-1.5 overflow-hidden">
-          <motion.div
-            className="h-full bg-primary rounded-full"
-            animate={{ width: `${((decisionIndex) / total) * 100}%` }}
-            transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-          />
-        </div>
-        <div className="flex justify-between mt-1.5">
-          <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">{currentScenario.title}</span>
-          <span className="text-[11px] text-muted-foreground font-semibold">{decisionIndex + 1} / {total}</span>
+        <div className="flex gap-3">
+          {statConfigs.slice(2, 4).map(cfg => (
+            <StatRow key={cfg.key} config={cfg} value={stats[cfg.key]} delta={lastDeltas?.[cfg.key]} />
+          ))}
         </div>
       </div>
 
@@ -265,58 +300,90 @@ function GameScreen({ currentScenario, decisionIndex, stats, lastDeltas, lastCho
         <AnimatePresence mode="wait">
           {gameState === 'playing' ? (
             <motion.div
-              key={`decision-${decision.id}`}
+              key={`scene-${scene.id}`}
               initial={{ opacity: 0, x: 32 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -32 }}
               transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-              className="p-5 pt-7 pb-10"
+              className="p-5 pt-6 pb-10"
             >
-              <p className="text-2xl font-bold text-foreground leading-snug mb-8">{decision.prompt}</p>
-
-              <div className="space-y-3">
-                {decision.choices.map((choice, i) => {
-                  const colors = CHOICE_COLORS[i % CHOICE_COLORS.length];
-                  return (
-                    <motion.button
-                      key={choice.id}
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0, transition: { delay: i * 0.07 } }}
-                      whileHover={{ scale: 1.015 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={() => makeChoice(choice)}
-                      data-testid={`choice-${choice.id}`}
-                      className={`w-full text-left flex items-start gap-4 p-4 rounded-2xl border transition-all duration-150 ${colors.base}`}
-                    >
-                      <span className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black ${colors.label}`}>
-                        {colors.letter}
-                      </span>
-                      <span className="text-base font-semibold text-foreground leading-snug pt-0.5">{choice.text}</span>
-                    </motion.button>
-                  );
-                })}
+              <div className="mb-6">
+                <h3 data-testid="scene-title" className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
+                  {scene.title}
+                </h3>
+                <div className="bg-card border border-card-border rounded-2xl p-5 shadow-sm">
+                  <p data-testid="scene-text" className="text-base text-foreground leading-relaxed whitespace-pre-wrap">
+                    {scene.text}
+                  </p>
+                </div>
               </div>
+
+              {visibleFlags.length > 0 && (
+                <div data-testid="flags-row" className="flex flex-wrap gap-2 mb-6">
+                  {visibleFlags.map(f => (
+                    <span key={f} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-bold uppercase tracking-wider">
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {!scene.isEnding && (
+                <div className="space-y-3 mt-6">
+                  {shuffledChoices.map((choice, i) => {
+                    const colors = CHOICE_COLORS[i % CHOICE_COLORS.length];
+                    return (
+                      <motion.button
+                        key={choice.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0, transition: { delay: i * 0.07 } }}
+                        whileHover={{ scale: 1.015 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => makeChoice(choice)}
+                        data-testid={`choice-${choice.id}`}
+                        className={`w-full text-left flex items-start gap-4 p-4 rounded-2xl border transition-all duration-150 ${colors.base}`}
+                      >
+                        <span className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black ${colors.label}`}>
+                          {colors.letter}
+                        </span>
+                        <span className="text-base font-medium text-foreground leading-snug pt-0.5">{choice.label}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              )}
             </motion.div>
           ) : (
             <motion.div
-              key={`consequence-${decision.id}`}
+              key={`consequence-${scene.id}`}
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: 'spring', stiffness: 300, damping: 28 }}
               className="p-5 pt-7 pb-10 flex flex-col gap-5"
             >
-              <div className="bg-card border border-card-border rounded-2xl p-5 relative overflow-hidden">
-                <div className="absolute top-0 left-0 bottom-0 w-1 bg-primary rounded-l-2xl" />
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">What happened</p>
-                <p className="text-xl font-bold text-foreground leading-snug">{lastChoice?.consequenceText}</p>
-              </div>
+              {pendingFeedback && (
+                <div className={`bg-card border rounded-2xl p-5 relative overflow-hidden ${
+                  pendingFeedback.kind === 'good' ? 'border-emerald-500/30' :
+                  pendingFeedback.kind === 'bad' ? 'border-red-500/30' : 'border-amber-500/30'
+                }`}>
+                  <div className={`absolute top-0 left-0 bottom-0 w-1 rounded-l-2xl ${
+                    pendingFeedback.kind === 'good' ? 'bg-emerald-500' :
+                    pendingFeedback.kind === 'bad' ? 'bg-red-500' : 'bg-amber-500'
+                  }`} />
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Feedback</p>
+                  <p data-testid="feedback-text" className="text-lg font-medium text-foreground leading-snug">
+                    {pendingFeedback.text}
+                  </p>
+                </div>
+              )}
 
-              {lastChoice && (
+              {lastDeltas && (
                 <div className="grid grid-cols-2 gap-2.5">
-                  {(Object.entries(lastChoice.deltas) as [string, number][])
-                    .filter(([, v]) => v !== 0)
+                  {(Object.entries(lastDeltas) as [keyof typeof lastDeltas, number][])
+                    .filter(([, v]) => v !== undefined && v !== 0)
                     .map(([key, val]) => {
-                      const cfg = STAT_CONFIGS.find(s => s.key === key);
+                      const cfg = statConfigs.find(s => s.key === key);
                       if (!cfg) return null;
                       const isGood = cfg.invertGood ? val < 0 : val > 0;
                       const Icon = cfg.icon;
@@ -349,7 +416,7 @@ function GameScreen({ currentScenario, decisionIndex, stats, lastDeltas, lastCho
                 whileTap={{ scale: 0.97 }}
                 onClick={continueGame}
                 data-testid="button-continue"
-                className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                className="w-full mt-4 py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
               >
                 Continue <ArrowRight className="w-5 h-5" />
               </motion.button>
@@ -361,30 +428,21 @@ function GameScreen({ currentScenario, decisionIndex, stats, lastDeltas, lastCho
   );
 }
 
-function OutcomeScreen({ stats, currentScenario, calculateRating, history, returnToMenu, startGame }: ReturnType<typeof useGameState>) {
+function OutcomeScreen({ stats, currentScenario, currentSceneId, calculateRating, flags, returnToMenu, startGame }: ReturnType<typeof useGameState>) {
   if (!currentScenario) return null;
-  const rating = calculateRating(stats);
+  const scene = currentScenario.scenes[currentSceneId];
+  if (!scene || !scene.isEnding) return null;
+
+  const rating = calculateRating(flags, stats.score);
 
   const ratingConfig = {
-    Thriving: { color: 'text-emerald-400', bg: 'bg-emerald-400/10 border-emerald-400/20', bar: 'bg-emerald-400', icon: Trophy, subtitle: 'You nailed it. Genuinely.' },
-    Surviving: { color: 'text-amber-400',  bg: 'bg-amber-400/10 border-amber-400/20',   bar: 'bg-amber-400',  icon: RotateCcw, subtitle: 'Could be worse. Could be better.' },
-    Struggling: { color: 'text-red-400',   bg: 'bg-red-400/10 border-red-400/20',        bar: 'bg-red-400',    icon: Zap, subtitle: 'Life is hard. You\'ll learn.' },
+    'You Made It': { color: 'text-emerald-400', bg: 'bg-emerald-400/10 border-emerald-400/20', bar: 'bg-emerald-400', icon: Trophy },
+    'Getting By': { color: 'text-amber-400',  bg: 'bg-amber-400/10 border-amber-400/20',   bar: 'bg-amber-400',  icon: RotateCcw },
+    'Hard Lessons': { color: 'text-red-400',   bg: 'bg-red-400/10 border-red-400/20',        bar: 'bg-red-400',    icon: Zap },
   }[rating];
 
   const RatingIcon = ratingConfig.icon;
-
-  const badChoices = history.filter(c =>
-    (c.deltas.stress && c.deltas.stress > 15) ||
-    (c.deltas.money && c.deltas.money < -200) ||
-    (c.deltas.credit && c.deltas.credit < 0)
-  ).slice(0, 3);
-
-  const statSummary = [
-    { ...STAT_CONFIGS[0], value: stats.money },
-    { ...STAT_CONFIGS[1], value: stats.happiness },
-    { ...STAT_CONFIGS[2], value: stats.credit },
-    { ...STAT_CONFIGS[3], value: stats.stress },
-  ];
+  const statConfigs = getStatConfigs(currentScenario.startMoney);
 
   return (
     <motion.div
@@ -406,11 +464,10 @@ function OutcomeScreen({ stats, currentScenario, calculateRating, history, retur
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Final Result</p>
-          <h1 className={`text-6xl font-black uppercase tracking-tight leading-none mb-2 ${ratingConfig.color}`}>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Result</p>
+          <h1 className={`text-5xl font-black uppercase tracking-tight leading-none mb-4 ${ratingConfig.color}`}>
             {rating}
           </h1>
-          <p className="text-muted-foreground text-base">{ratingConfig.subtitle}</p>
         </motion.div>
       </div>
 
@@ -420,36 +477,23 @@ function OutcomeScreen({ stats, currentScenario, calculateRating, history, retur
         transition={{ delay: 0.3 }}
         className="bg-card border border-card-border rounded-2xl p-5 mb-4"
       >
+        <p className="text-sm font-bold text-foreground mb-3">{scene.endingTitle}</p>
+        <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{scene.text}</p>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-card border border-card-border rounded-2xl p-5 mb-6"
+      >
         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Final Stats</p>
         <div className="space-y-4">
-          {statSummary.map((s, i) => (
-            <StatRow key={s.key} config={s} value={s.value} />
+          {statConfigs.map((cfg) => (
+            <StatRow key={cfg.key} config={cfg} value={stats[cfg.key]} />
           ))}
         </div>
       </motion.div>
-
-      {badChoices.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-card border border-card-border rounded-2xl p-5 mb-6"
-        >
-          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Lessons Learned</p>
-          <ul className="space-y-3">
-            {badChoices.map((c, i) => (
-              <li key={i} className="flex gap-3 text-sm">
-                <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-amber-400/20 flex items-center justify-center">
-                  <Minus className="w-3 h-3 text-amber-400" />
-                </span>
-                <span className="text-foreground/80 leading-relaxed">
-                  <span className="font-semibold text-foreground">{c.text}</span> — {c.consequenceText}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-      )}
 
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -462,14 +506,14 @@ function OutcomeScreen({ stats, currentScenario, calculateRating, history, retur
           data-testid="button-replay"
           className="w-full py-4 rounded-2xl bg-card border border-card-border text-foreground font-bold text-base flex items-center justify-center gap-2"
         >
-          <RotateCcw className="w-4 h-4" /> Try Again
+          <RotateCcw className="w-4 h-4" /> Replay Scenario
         </button>
         <button
           onClick={returnToMenu}
           data-testid="button-menu"
           className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
         >
-          <Play className="w-4 h-4" /> New Scenario
+          <Play className="w-4 h-4" /> Pick Another
         </button>
       </motion.div>
     </motion.div>
