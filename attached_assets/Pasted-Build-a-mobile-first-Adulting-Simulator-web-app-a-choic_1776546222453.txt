@@ -1,0 +1,40 @@
+Build a mobile-first "Adulting Simulator" web app - a choice-based scenario game where players navigate real-life adult situations and see the consequences of their decisions.
+
+Core concept: Players face realistic adulting scenarios (signing a lease, handling an unexpected bill, choosing health insurance, etc.) and make choices that affect their life stats (money, stress, credit score, happiness). Think "Choose Your Own Adventure" meets real-life consequences. Like Mario Maker, but for adulting scenarios.
+
+Key features to include:
+
+Scenario Selection Screen
+Browse available life scenarios to play through
+Life Stats Bar
+Always visible at top: Money, Stress, Credit Score, Happiness (or similar metrics)
+Scenario Gameplay:
+
+Present a realistic situation with context
+Show 2-4 decision options
+Player chooses one
+Immediately show consequences and stat changes
+Continue to next decision in the scenario (3-5 decisions per scenario)
+End with outcome summary (success/struggle/failure)
+Scenario Results Screen
+Show final stats, what went well, what went wrong, lessons learned
+Replay/Try Again
+Let users replay scenarios with different choices
+Progress Tracking
+Track scenarios completed and best outcomes
+Example Scenario: "First Month Living Alone"
+
+Starting stats: $2000, Low Stress, No Credit Score, Happy
+Decision 1: Rent is due but you're $200 short. Do you: (A) Ask parents for help (B) Skip groceries this week (C) Use credit card (D) Talk to landlord about payment plan
+Each choice changes stats differently and affects next decisions
+End result varies based on choices made
+User flow:
+
+User opens app → sees scenario menu → picks a scenario → reads situation → makes choice → sees immediate consequence → stats update → next decision appears → completes 3-5 decisions → sees final outcome and stats → can replay or try new scenario
+Design style: Game-like, clean, mobile-first. Clear buttons for choices, animated stat changes, satisfying feedback. Should feel like playing a game, not taking a quiz.
+
+Tech stack suggestions: React or Next.js, simple state management for stats, mobile-responsive, can start without backend (scenarios can be hardcoded JSON for MVP).
+
+MVP scope: Build 1 complete scenario with 4-5 branching decisions, working stat system, outcome screen, and replay functionality. Make it feel polished and game-like. Add more scenarios after the core loop works.
+
+Important: Focus on making choices feel meaningful - different decisions should lead to noticeably different outcomes and stat changes. The consequences should be realistic but not preachy.
