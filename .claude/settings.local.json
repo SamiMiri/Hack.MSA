@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"C:/Hackathons/HackMSA/replit_v2\")",
+      "Bash(unzip -oq \"C:/Users/ihsan/Downloads/Hack.MSA-main \\(1\\).zip\")"
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Next Steps",
+    "slug": "next-steps",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "nextsteps",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#FAFAF8"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nextsteps.app"
+    },
+    "android": {
+      "package": "com.nextsteps.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FAFAF8"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": ["expo-font"]
+  }
+}

@@ -1,0 +1,2785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Next Steps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3f6fb; --bg2: #e7edf6; --panel: #ffffff; --panel2: #f7f9fd;
+    --text: #1a1f2e; --muted: #6b7280; --border: #e2e8f0;
+    --accent: #2563eb; --accent-soft: #dbeafe;
+    --good: #16a34a; --good-soft: #dcfce7;
+    --bad: #dc2626; --bad-soft: #fee2e2;
+    --warn: #d97706; --warn-soft: #fef3c7;
+    --health: #ef4444; --wellbeing: #8b5cf6; --money: #16a34a;
+    --law: #dc2626;
+    --shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+    --shadow-lg: 0 8px 28px rgba(15, 23, 42, 0.1);
+  }
+  body.dark {
+    --bg: #0b0e14; --bg2: #12151d; --panel: #181c25; --panel2: #1e2330;
+    --text: #e8ecf3; --muted: #8a93a6; --border: #2a3040;
+    --accent: #60a5fa; --accent-soft: #1e3a8a;
+    --good: #4ade80; --good-soft: #14532d;
+    --bad: #f87171; --bad-soft: #7f1d1d;
+    --warn: #fbbf24; --warn-soft: #78350f;
+    --shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.6);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; font-size: 17px; line-height: 1.55;
+    transition: background 0.25s, color 0.25s;
+  }
+  .alert-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 100; }
+  body.alert-law .alert-overlay { animation: alertPolice 1s infinite; }
+  @keyframes alertPolice {
+    0%, 49% { box-shadow: inset 0 0 80px 0 rgba(220,38,38,0.45); }
+    50%, 100% { box-shadow: inset 0 0 80px 0 rgba(37,99,235,0.45); }
+  }
+  body.flash-good { animation: fg 0.8s; }
+  body.flash-bad { animation: fb 0.8s; }
+  body.flash-mid { animation: fm 0.8s; }
+  @keyframes fg { 0% { box-shadow: inset 0 0 120px 0 rgba(22,163,74,0.4); } 100% { box-shadow: inset 0 0 0 0 transparent; } }
+  @keyframes fb { 0% { box-shadow: inset 0 0 120px 0 rgba(220,38,38,0.4); } 100% { box-shadow: inset 0 0 0 0 transparent; } }
+  @keyframes fm { 0% { box-shadow: inset 0 0 120px 0 rgba(217,119,6,0.35); } 100% { box-shadow: inset 0 0 0 0 transparent; } }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+    box-shadow: var(--shadow);
+  }
+  .topbar .brand { font-weight: 800; font-size: 20px; letter-spacing: -0.3px; }
+  .topbar .brand .dot { color: var(--accent); }
+  .topbar .spacer { flex: 1; }
+  .topbar button.icon {
+    background: var(--panel2); border: 1px solid var(--border);
+    color: var(--text); padding: 6px 12px; border-radius: 8px;
+    cursor: pointer; font: inherit; font-size: 13px; font-weight: 600;
+  }
+  .topbar button.icon:hover { background: var(--bg2); }
+  .topbar .char-name { color: var(--muted); font-size: 13px; }
+
+  .wrap { max-width: 860px; margin: 0 auto; padding: 20px 20px 60px; }
+
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 20px;
+    background: var(--panel); padding: 4px; border-radius: 12px;
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .tab {
+    flex: 1; padding: 10px 14px; border-radius: 8px;
+    text-align: center; cursor: pointer; font-weight: 600; font-size: 15px;
+    color: var(--muted); border: none; background: transparent; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .tab.active { background: var(--accent); color: white; }
+  .tab:not(.active):hover { background: var(--bg2); color: var(--text); }
+
+  /* Menu cards */
+  .menu-card {
+    background: var(--panel); border: 1.5px solid var(--border);
+    border-radius: 16px; padding: 20px 22px; margin-bottom: 12px;
+    cursor: pointer; box-shadow: var(--shadow);
+    transition: all 0.15s;
+  }
+  .menu-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .menu-card h3 { margin: 0 0 4px; font-size: 19px; color: var(--accent); }
+  .menu-card .who { color: var(--muted); font-size: 13px; margin-bottom: 8px; font-weight: 500; }
+  .menu-card .desc { font-size: 14px; color: var(--text); line-height: 1.55; }
+
+  /* Stats + law */
+  .statsgrid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+    margin-bottom: 10px;
+  }
+  .stat {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow);
+  }
+  .stat .lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; }
+  .stat .val { font-size: 22px; font-weight: 700; margin-top: 2px; }
+  .bar { height: 6px; background: var(--bg2); border-radius: 6px; margin-top: 8px; overflow: hidden; }
+  .bar > div { height: 100%; border-radius: 6px; transition: width 0.35s; }
+  .stat.health .bar > div { background: var(--health); }
+  .stat.wellbeing .bar > div { background: var(--wellbeing); }
+  .law-wrap {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 14px; box-shadow: var(--shadow);
+    margin-bottom: 10px;
+  }
+  .law-wrap .row { display: flex; justify-content: space-between; align-items: center; }
+  .law-wrap .lbl { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+  .law-wrap .val { font-size: 15px; font-weight: 700; }
+  .law-wrap .bar { height: 6px; margin-top: 6px; }
+  .law-wrap .bar > div { background: var(--law); box-shadow: 0 0 10px var(--law); }
+  .law-wrap.hot { animation: meterPulse 1.2s infinite; }
+  @keyframes meterPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.012); } }
+
+  .mods { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; min-height: 12px; }
+  .chip {
+    background: var(--warn-soft); color: var(--warn);
+    padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  }
+  .chip.neutral { background: var(--accent-soft); color: var(--accent); }
+
+  .scene {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 18px; padding: 24px 26px; box-shadow: var(--shadow);
+    margin-bottom: 14px; white-space: pre-wrap;
+    font-size: 17px; line-height: 1.65;
+  }
+  .scene .title {
+    color: var(--accent); font-weight: 700; font-size: 13px;
+    letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .scene h2 { margin: 0 0 8px; font-size: 22px; }
+
+  .feedback {
+    padding: 14px 18px; border-radius: 14px; margin-bottom: 14px;
+    font-size: 15px; border: 1px solid transparent; box-shadow: var(--shadow);
+  }
+  .feedback.good { background: var(--good-soft); color: var(--good); border-color: var(--good); }
+  .feedback.bad { background: var(--bad-soft); color: var(--bad); border-color: var(--bad); }
+  .feedback.mid { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+  .feedback .label { font-weight: 800; text-transform: uppercase; font-size: 11px; letter-spacing: 1.2px; margin-bottom: 4px; }
+  .feedback .deltas { margin-top: 8px; font-size: 13px; font-weight: 600; display: flex; gap: 10px; flex-wrap: wrap; }
+  .delta.pos { color: var(--good); }
+  .delta.neg { color: var(--bad); }
+
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+  button.choice {
+    text-align: left; cursor: pointer; font: inherit;
+    background: var(--panel); color: var(--text);
+    border: 1.5px solid var(--border); border-radius: 14px;
+    padding: 14px 16px; font-size: 16px; line-height: 1.5;
+    transition: all 0.15s; box-shadow: var(--shadow);
+  }
+  button.choice:hover { border-color: var(--accent); background: var(--panel2); transform: translateY(-1px); }
+  button.choice:active { transform: translateY(0); }
+  button.choice .letter { display: inline-block; width: 26px; color: var(--accent); font-weight: 800; }
+
+  .drawer-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+  .drawer-bg.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(480px, 100%);
+    background: var(--panel); z-index: 51;
+    transform: translateX(100%); transition: transform 0.3s;
+    overflow-y: auto; padding: 20px; border-left: 1px solid var(--border);
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer h2 { margin: 0 0 4px; font-size: 22px; }
+  .drawer .sub { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+  .note {
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; margin-bottom: 10px;
+  }
+  .note .day-tag { color: var(--accent); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .note .q { font-weight: 600; font-size: 14px; margin: 4px 0 8px; }
+  .note .a-picked {
+    padding: 8px 10px; border-radius: 8px; font-size: 13px;
+    background: var(--good-soft); color: var(--good);
+    border-left: 3px solid var(--good); margin-bottom: 6px;
+  }
+  .note .a-picked.bad { background: var(--bad-soft); color: var(--bad); border-color: var(--bad); }
+  .note .a-picked.mid { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+  .note .a-fb { font-size: 13px; color: var(--muted); margin: 6px 0 8px; }
+  .note .a-other {
+    padding: 6px 10px; border-radius: 8px; font-size: 12px;
+    background: var(--bg2); color: var(--muted); text-decoration: line-through;
+    margin-bottom: 4px; opacity: 0.7;
+  }
+  .drawer .close {
+    position: absolute; top: 16px; right: 16px;
+    background: var(--panel2); border: 1px solid var(--border);
+    width: 32px; height: 32px; border-radius: 50%; font-size: 18px;
+    cursor: pointer; color: var(--text); font-weight: 700;
+  }
+
+  .ending {
+    text-align: center; padding: 40px 24px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 18px; box-shadow: var(--shadow-lg);
+  }
+  .ending.good { border-color: var(--good); }
+  .ending.bad { border-color: var(--bad); }
+  .ending.mid { border-color: var(--warn); }
+  .ending h1 { margin: 0 0 10px; font-size: 30px; }
+  .ending h1.good { color: var(--good); }
+  .ending h1.bad { color: var(--bad); }
+  .ending h1.mid { color: var(--warn); }
+  .restart {
+    margin-top: 20px; background: var(--accent); color: white;
+    border: none; padding: 12px 24px; border-radius: 12px;
+    font-weight: 700; font-size: 15px; cursor: pointer; font-family: inherit;
+  }
+  .restart.ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); margin-left: 8px; }
+
+  .ending-analysis {
+    text-align: left; margin-top: 28px; padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .ending-analysis h3 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 1.4px;
+    color: var(--muted); margin: 0 0 12px; font-weight: 800;
+  }
+  .reason {
+    padding: 11px 14px; border-radius: 10px; margin-bottom: 8px;
+    font-size: 14px; line-height: 1.55;
+    display: flex; gap: 10px; align-items: flex-start;
+    border: 1px solid transparent;
+  }
+  .reason.good { background: var(--good-soft); color: var(--good); border-color: var(--good); }
+  .reason.bad { background: var(--bad-soft); color: var(--bad); border-color: var(--bad); }
+  .reason.mid { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+  .reason .ic { font-weight: 800; flex-shrink: 0; width: 18px; }
+  .lesson {
+    padding: 14px 16px; border-radius: 12px; margin-bottom: 10px;
+    background: var(--panel2); border-left: 4px solid var(--accent);
+    text-align: left;
+  }
+  .lesson .t { font-weight: 700; font-size: 15px; margin-bottom: 4px; color: var(--text); }
+  .lesson .d { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .ending { text-align: left; }
+  .ending h1 { text-align: center; }
+  .ending .narrative { text-align: center; font-size: 16px; margin: 16px 0 8px; line-height: 1.7; }
+  .ending .stats-line { text-align: center; color: var(--muted); font-size: 13px; margin: 12px 0; }
+  .ending .actions-row { text-align: center; margin-top: 20px; }
+
+  .setup-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 18px; padding: 24px; margin-bottom: 14px; box-shadow: var(--shadow);
+  }
+  .setup-card h3 { margin: 0 0 6px; font-size: 18px; }
+  .setup-card .q { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+  .setup-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .setup-opt {
+    background: var(--panel2); border: 2px solid var(--border);
+    border-radius: 12px; padding: 14px; cursor: pointer;
+    font-size: 14px; transition: all 0.15s;
+  }
+  .setup-opt:hover { border-color: var(--accent); }
+  .setup-opt.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .setup-opt .t { font-weight: 700; font-size: 15px; display: block; margin-bottom: 4px; }
+  .setup-opt .d { color: var(--muted); font-size: 13px; }
+
+  /* Level editor */
+  .ed-toolbar {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+  }
+  .ed-btn {
+    background: var(--accent); color: white; border: none;
+    padding: 10px 16px; border-radius: 10px; font-weight: 700;
+    cursor: pointer; font-family: inherit; font-size: 14px;
+  }
+  .ed-btn.ghost { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+  .ed-btn.danger { background: var(--bad); color: white; }
+  .ed-btn:hover { filter: brightness(1.08); }
+
+  .ed-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px; margin-bottom: 12px;
+    box-shadow: var(--shadow);
+  }
+  .ed-card h3 { margin: 0 0 4px; font-size: 17px; }
+  .ed-card .meta { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+  .ed-card .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+  .ed-section { margin: 24px 0 14px; }
+  .ed-section-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .ed-section-head h3 {
+    margin: 0; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 1.2px; color: var(--muted); font-weight: 800;
+  }
+  .ed-field { margin-bottom: 12px; }
+  .ed-field label {
+    display: block; font-size: 12px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;
+  }
+  .ed-field input, .ed-field textarea, .ed-field select {
+    width: 100%; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--panel2);
+    color: var(--text); font-family: inherit; font-size: 14px;
+    box-sizing: border-box;
+  }
+  .ed-field textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
+  .ed-field input:focus, .ed-field textarea:focus, .ed-field select:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .ed-inline {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+  }
+  .ed-kind-row {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .ed-kind-row label {
+    padding: 8px 14px; border-radius: 8px; border: 2px solid var(--border);
+    cursor: pointer; font-size: 13px; font-weight: 700; display: inline-block;
+    text-transform: none; letter-spacing: 0; margin: 0;
+  }
+  .ed-kind-row input { display: none; }
+  .ed-kind-row input:checked + label.ed-kind-good { background: var(--good-soft); color: var(--good); border-color: var(--good); }
+  .ed-kind-row input:checked + label.ed-kind-bad { background: var(--bad-soft); color: var(--bad); border-color: var(--bad); }
+  .ed-kind-row input:checked + label.ed-kind-mid { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+
+  .scene-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .scene-pill .id-tag { color: var(--accent); font-size: 11px; font-family: monospace; }
+  .scene-pill .flex { flex: 1; }
+  .scene-pill.ending { border-left: 4px solid var(--good); }
+  .scene-pill.ending-bad { border-left-color: var(--bad); }
+  .scene-pill.ending-mid { border-left-color: var(--warn); }
+
+  .choice-editor {
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px; margin-bottom: 10px;
+  }
+  .choice-editor .choice-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .rule-row {
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px; margin-bottom: 8px;
+    display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center;
+  }
+
+  .tabs-4 { grid-template-columns: repeat(3, 1fr); }
+
+  .ed-hint {
+    background: var(--accent-soft); color: var(--accent);
+    padding: 10px 14px; border-radius: 10px; font-size: 13px;
+    border-left: 3px solid var(--accent); margin-bottom: 14px;
+  }
+
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 60; display: none; padding: 20px; overflow-y: auto;
+  }
+  .modal-bg.open { display: block; }
+  .modal {
+    background: var(--panel); border-radius: 16px;
+    max-width: 720px; margin: 20px auto;
+    padding: 24px; box-shadow: var(--shadow-lg);
+  }
+  .modal h2 { margin: 0 0 12px; font-size: 22px; }
+  .modal textarea.json { font-family: monospace; font-size: 12px; min-height: 280px; }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 14px; }
+    .statsgrid { grid-template-columns: 1fr; }
+    .setup-opts { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="alert-overlay"></div>
+
+<div class="topbar">
+  <div class="brand">Next<span class="dot">Steps</span></div>
+  <div class="char-name" id="char-name"></div>
+  <div class="spacer"></div>
+  <button class="icon" id="notebook-btn" onclick="toggleDrawer()" style="display:none">📓 Notebook</button>
+  <button class="icon" id="menu-btn" onclick="returnToMenu()" style="display:none">← Menu</button>
+  <button class="icon" onclick="toggleDark()">🌓</button>
+</div>
+
+<div class="wrap">
+  <div id="stats-wrap" style="display:none;">
+    <div class="statsgrid">
+      <div class="stat health"><div class="lbl">Health</div><div class="val"><span id="v-health">80</span>/100</div><div class="bar"><div id="b-health" style="width:80%"></div></div></div>
+      <div class="stat wellbeing"><div class="lbl">Wellbeing</div><div class="val"><span id="v-well">70</span>/100</div><div class="bar"><div id="b-well" style="width:70%"></div></div></div>
+      <div class="stat money"><div class="lbl">Money</div><div class="val">$<span id="v-money">0</span></div></div>
+    </div>
+    <div class="law-wrap" id="law-wrap">
+      <div class="row">
+        <span class="lbl">⚖ Law — heat from IRS, police, and feds</span>
+        <span class="val"><span id="v-law">0</span>%</span>
+      </div>
+      <div class="bar"><div id="b-law" style="width:0%"></div></div>
+    </div>
+    <div class="mods" id="mods"></div>
+  </div>
+
+  <div id="game"></div>
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<div class="drawer-bg" id="drawer-bg" onclick="toggleDrawer()"></div>
+<div class="drawer" id="drawer">
+  <button class="close" onclick="toggleDrawer()">×</button>
+  <h2>📓 Notebook</h2>
+  <div class="sub">Every decision you've made, the feedback you got, and the roads not taken.</div>
+  <div id="notes"></div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let state = null;
+let activeTab = "campaign";
+
+function freshState(startMoney) {
+  return {
+    char: { name: "", modifiers: new Set() },
+    stats: { health: 80, wellbeing: 70, money: startMoney || 0 },
+    law: 0,
+    flags: new Set(),
+    pendingEvents: [],
+    turn: 0,
+    notebook: [],
+    currentScenario: null,
+    sceneMap: null,
+    gameOver: false,
+    lastDelta: null,
+  };
+}
+
+function scheduleEvent(turnsFromNow, sceneId) {
+  state.pendingEvents.push({ triggerTurn: state.turn + turnsFromNow, sceneId });
+}
+function checkPendingEvents() {
+  const due = state.pendingEvents.find(e => e.triggerTurn <= state.turn);
+  if (due) { state.pendingEvents = state.pendingEvents.filter(e => e !== due); return due.sceneId; }
+  return null;
+}
+
+// ============================================================
+// MODIFIERS
+// ============================================================
+const modifierDefs = {
+  // Legal record
+  clean_record: { name: "Clean Record", neutral: true },
+  criminal_record: { name: "Criminal Record", lawMult: 1.5 },
+  juvenile_record: { name: "Sealed Juvenile Record", lawMult: 1.15 },
+
+  // Citizenship / documentation
+  citizen: { name: "U.S. Citizen", neutral: true },
+  f1_visa: { name: "F-1 International Student", lawMult: 1.3 },
+  daca_recipient: { name: "DACA Recipient", lawMult: 1.2 },
+  green_card: { name: "Permanent Resident", lawMult: 1.05 },
+
+  // Family support
+  family_support: { name: "Supportive Family", neutral: true },
+  no_safety_net: { name: "No Safety Net", wellbeingDrain: 1 },
+  caretaker: { name: "Caretaker for a Parent", moneyDrain: 10, wellbeingDrain: 1 },
+  estranged: { name: "Estranged from Family", wellbeingDrain: 0.5 },
+
+  // Financial starting point
+  modest_savings: { name: "Modest Savings", startMoney: 500 },
+  paycheck_to_paycheck: { name: "Paycheck to Paycheck", neutral: true },
+  broke: { name: "Broke", startMoney: -400 },
+  student_debt: { name: "Student Loan Debt ($32k)", wellbeingDrain: 0.5 },
+
+  // Physical health
+  healthy: { name: "Healthy", neutral: true },
+  chronic_condition: { name: "Chronic Condition", startHealth: -15, healthDrain: 0.5 },
+  disability: { name: "Physical Disability", startHealth: -20, healthDrain: 0.3 },
+  uninsured_chronic: { name: "Uninsured + Chronic", startHealth: -20, healthDrain: 0.8, startMoneyMult: 0.9 },
+
+  // Mental health
+  mentally_well: { name: "Mentally Well", neutral: true },
+  anxiety: { name: "Anxiety Disorder", startWellbeing: -12, wellbeingDrain: 0.5 },
+  depression_history: { name: "History of Depression", startWellbeing: -10, wellbeingDrain: 0.4 },
+  neurodivergent: { name: "ADHD / Neurodivergent", wellbeingDrain: 0.2 },
+
+  // Background / situation
+  traditional_student: { name: "Traditional Student", neutral: true },
+  first_gen_student: { name: "First-Generation Student", wellbeingDrain: 0.3 },
+  returning_adult: { name: "Returning Adult Learner", startMoney: 800 },
+  working_full_time: { name: "Working Full-Time", startMoney: 600, wellbeingDrain: 0.3 },
+  homeless_history: { name: "Recently Housing-Insecure", startMoney: -300, wellbeingDrain: 0.5 },
+
+  // Financial literacy
+  finance_novice: { name: "No Financial Education", neutral: true },
+  finance_savvy: { name: "Read a Personal Finance Book", wellbeingBoost: true },
+  scammed_before: { name: "Scammed Before (wiser now)", neutral: true },
+};
+
+// Groups shown in freeplay character creation. Data-driven.
+const modifierGroups = [
+  { id: "record", label: "Legal record", q: "Any legal trouble on your record?", opts: [
+    { val: "clean_record",    t: "No record",           d: "Clean background. Hireable. Baseline." },
+    { val: "juvenile_record", t: "Sealed juvenile",     d: "Minor charge at 15, sealed. Occasionally surfaces. Law heat +15%." },
+    { val: "criminal_record", t: "Misdemeanor at 17",   d: "Shoplifting. Shows on background checks. Law heat builds 50% faster." },
+  ]},
+  { id: "visa", label: "Citizenship / documentation", q: "What's on your paperwork?", opts: [
+    { val: "citizen",         t: "U.S. Citizen",          d: "No visa restrictions." },
+    { val: "green_card",      t: "Permanent Resident",    d: "Green card. Most rights of citizen; deportable for serious crimes." },
+    { val: "f1_visa",         t: "F-1 International",     d: "Can only work on-campus, 20 hr/wk. Off-campus work = deportable. Law heat +30%." },
+    { val: "daca_recipient",  t: "DACA Recipient",        d: "Work-authorized via renewable permit. Any arrest can jeopardize status. Law heat +20%." },
+  ]},
+  { id: "family", label: "Family support", q: "If things go sideways, who do you call?", opts: [
+    { val: "family_support",  t: "Supportive family",    d: "Parents can bail you out once." },
+    { val: "estranged",       t: "Estranged from family", d: "You don't talk. No bailout. Slight ongoing wellbeing drain." },
+    { val: "no_safety_net",   t: "No safety net",        d: "You're your own emergency contact. Wellbeing drains -1 per choice." },
+    { val: "caretaker",       t: "Caring for a parent",   d: "You support an aging parent. -$10 and -1 wellbeing per choice." },
+  ]},
+  { id: "finance", label: "Financial starting point", q: "Where do you start money-wise?", opts: [
+    { val: "modest_savings",       t: "Modest savings",       d: "A $500 buffer before the scenario begins." },
+    { val: "paycheck_to_paycheck", t: "Paycheck to paycheck", d: "Standard. The scenario's default starting amount." },
+    { val: "broke",                t: "Broke",                d: "Start with -$400. Overdraft fees loom." },
+    { val: "student_debt",         t: "Student loans ($32k)", d: "Monthly payments grind on your wellbeing each turn." },
+  ]},
+  { id: "health", label: "Physical health", q: "How's your body holding up?", opts: [
+    { val: "healthy",             t: "Healthy",               d: "Baseline. No starting penalty." },
+    { val: "chronic_condition",   t: "Chronic condition",     d: "Asthma, diabetes, or similar. Start with -15 health; slow drain each turn." },
+    { val: "disability",          t: "Physical disability",   d: "Limits some choices. Start with -20 health; fewer job types available." },
+    { val: "uninsured_chronic",   t: "Chronic + Uninsured",   d: "Worst case. Medical bills escalate fast. Start with -20 health and faster drain." },
+  ]},
+  { id: "mental", label: "Mental health", q: "What's your mental baseline?", opts: [
+    { val: "mentally_well",       t: "Mentally well",        d: "Baseline. No starting penalty." },
+    { val: "anxiety",             t: "Anxiety disorder",     d: "Start with -12 wellbeing. Stress compounds." },
+    { val: "depression_history",  t: "History of depression", d: "Start with -10 wellbeing. Slow drain each turn." },
+    { val: "neurodivergent",      t: "ADHD / Neurodivergent", d: "Paperwork-heavy choices hit wellbeing more. Small ongoing drain." },
+  ]},
+  { id: "background", label: "Life situation", q: "What best describes you right now?", opts: [
+    { val: "traditional_student", t: "Traditional student",   d: "Still in school. Baseline for most scenarios." },
+    { val: "first_gen_student",   t: "First-gen student",     d: "No one in your family has navigated this. Small wellbeing drain from isolation." },
+    { val: "returning_adult",     t: "Returning adult",       d: "Back in school at 28+. +$800 savings from your working years." },
+    { val: "working_full_time",   t: "Working full-time",     d: "Full-time employed. +$600 but slow wellbeing drain." },
+    { val: "homeless_history",    t: "Recently housing-insecure", d: "Couch-surfed last year. Start -$300. Slow wellbeing drain." },
+  ]},
+  { id: "finlit", label: "Financial literacy", q: "How prepared are you for adulting?", opts: [
+    { val: "finance_novice",  t: "No prep",                d: "You've never read a budget. Baseline." },
+    { val: "finance_savvy",   t: "Read a finance book",    d: "You know what APR means. Small wellbeing buffer from confidence." },
+    { val: "scammed_before",  t: "Scammed before",         d: "A Zelle scam at 17 cost you $400. You're wary now." },
+  ]},
+];
+
+function hasMod(key) { return state?.char.modifiers.has(key); }
+
+function lawTick(base) {
+  let v = base;
+  if (hasMod("criminal_record")) v *= 1.5;
+  if (hasMod("juvenile_record")) v *= 1.15;
+  if (hasMod("f1_visa")) v *= 1.3;
+  if (hasMod("daca_recipient")) v *= 1.2;
+  if (hasMod("green_card")) v *= 1.05;
+  return Math.round(v);
+}
+
+function applyStartingModifiers(s) {
+  const m = s.char.modifiers;
+  if (m.has("chronic_condition")) s.stats.health -= 15;
+  if (m.has("disability")) s.stats.health -= 20;
+  if (m.has("uninsured_chronic")) { s.stats.health -= 20; s.stats.money = Math.round(s.stats.money * 0.9); }
+  if (m.has("anxiety")) s.stats.wellbeing -= 12;
+  if (m.has("depression_history")) s.stats.wellbeing -= 10;
+  if (m.has("modest_savings")) s.stats.money += 500;
+  if (m.has("broke")) s.stats.money -= 400;
+  if (m.has("returning_adult")) s.stats.money += 800;
+  if (m.has("working_full_time")) s.stats.money += 600;
+  if (m.has("homeless_history")) s.stats.money -= 300;
+  if (m.has("finance_savvy")) s.stats.wellbeing += 5;
+  s.stats.health = clamp(s.stats.health, 1, 100);
+  s.stats.wellbeing = clamp(s.stats.wellbeing, 1, 100);
+  s.stats.money = Math.max(0, s.stats.money);
+}
+
+// ============================================================
+// DELTA APPLICATION
+// ============================================================
+function applyEffects(s, e) {
+  e = e || {};
+  if (e.money)     s.stats.money += e.money;
+  if (e.health)    s.stats.health = clamp(s.stats.health + e.health, 0, 100);
+  if (e.wellbeing) s.stats.wellbeing = clamp(s.stats.wellbeing + e.wellbeing, 0, 100);
+  if (e.law)       s.law = clamp(s.law + (e.law > 0 ? lawTick(e.law) : e.law), 0, 100);
+  if (e.addFlags)  e.addFlags.forEach(f => s.flags.add(f));
+  if (e.rmFlags)   e.rmFlags.forEach(f => s.flags.delete(f));
+  if (e.schedule)  e.schedule.forEach(([t, id]) => scheduleEvent(t, id));
+  if (hasMod("no_safety_net"))       s.stats.wellbeing = Math.max(0, s.stats.wellbeing - 1);
+  if (hasMod("caretaker"))           { s.stats.money -= 10; s.stats.wellbeing = Math.max(0, s.stats.wellbeing - 1); }
+  if (hasMod("estranged"))           s.stats.wellbeing = Math.max(0, s.stats.wellbeing - 0.5);
+  if (hasMod("student_debt"))        s.stats.wellbeing = Math.max(0, s.stats.wellbeing - 0.5);
+  if (hasMod("chronic_condition"))   s.stats.health = Math.max(0, s.stats.health - 0.5);
+  if (hasMod("disability"))          s.stats.health = Math.max(0, s.stats.health - 0.3);
+  if (hasMod("uninsured_chronic"))   s.stats.health = Math.max(0, s.stats.health - 0.8);
+  if (hasMod("anxiety"))             s.stats.wellbeing = Math.max(0, s.stats.wellbeing - 0.5);
+  if (hasMod("depression_history"))  s.stats.wellbeing = Math.max(0, s.stats.wellbeing - 0.4);
+  if (hasMod("neurodivergent"))      s.stats.wellbeing = Math.max(0, s.stats.wellbeing - 0.2);
+  if (hasMod("first_gen_student"))   s.stats.wellbeing = Math.max(0, s.stats.wellbeing - 0.3);
+  if (hasMod("working_full_time"))   s.stats.wellbeing = Math.max(0, s.stats.wellbeing - 0.3);
+  if (hasMod("homeless_history"))    s.stats.wellbeing = Math.max(0, s.stats.wellbeing - 0.5);
+  s.stats.health = Math.round(s.stats.health * 10) / 10;
+  s.stats.wellbeing = Math.round(s.stats.wellbeing * 10) / 10;
+  if (s.stats.health <= 0)    { s.gameOver = true; s.pendingForcedEnd = "ending_hospital"; }
+  if (s.stats.wellbeing <= 0) { s.gameOver = true; s.pendingForcedEnd = "ending_breakdown"; }
+}
+function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+
+// ============================================================
+// DATA-DRIVEN LEVEL ENGINE (for user-authored levels)
+// Evaluates declarative conditions and rules so the editor
+// never needs to output JavaScript functions.
+// ============================================================
+function evalCondition(s, cond) {
+  if (!cond) return true;
+  if (cond.hasFlag && !s.flags.has(cond.hasFlag)) return false;
+  if (cond.notFlag && s.flags.has(cond.notFlag)) return false;
+  if (cond.hasAllFlags && !cond.hasAllFlags.every(f => s.flags.has(f))) return false;
+  if (cond.hasAnyFlag && !cond.hasAnyFlag.some(f => s.flags.has(f))) return false;
+  if (cond.lawGte != null && s.law < cond.lawGte) return false;
+  if (cond.lawLte != null && s.law > cond.lawLte) return false;
+  if (cond.wellbeingGte != null && s.stats.wellbeing < cond.wellbeingGte) return false;
+  if (cond.wellbeingLte != null && s.stats.wellbeing > cond.wellbeingLte) return false;
+  if (cond.healthGte != null && s.stats.health < cond.healthGte) return false;
+  if (cond.healthLte != null && s.stats.health > cond.healthLte) return false;
+  if (cond.moneyGte != null && s.stats.money < cond.moneyGte) return false;
+  if (cond.moneyLte != null && s.stats.money > cond.moneyLte) return false;
+  return true;
+}
+
+function evalRules(s, rules, fallback) {
+  if (!rules) return fallback;
+  for (const r of rules) {
+    if (r.default || evalCondition(s, r.if)) return r.to;
+  }
+  return fallback;
+}
+
+// Substitute {name}, {money}, {law}, etc. placeholders in text
+function interpolate(str, s) {
+  if (typeof str !== "string") return str;
+  return str
+    .replace(/\{name\}/g, s.char.name || "")
+    .replace(/\{money\}/g, Math.round(s.stats.money).toLocaleString())
+    .replace(/\{law\}/g, Math.round(s.law))
+    .replace(/\{wellbeing\}/g, Math.round(s.stats.wellbeing))
+    .replace(/\{health\}/g, Math.round(s.stats.health));
+}
+
+// Convert a declarative data-level into a runtime scenario
+// compatible with the existing engine (sceneMap + finale.next).
+function dataLevelToScenario(lvl) {
+  const sceneMap = {};
+  (lvl.scenes || []).forEach(sc => {
+    const scene = {
+      title: sc.title,
+      text: () => interpolate(sc.text || "", state),
+    };
+    if (sc.ending) {
+      scene.ending = true;
+      scene.kind = sc.endingKind || "mid";
+    } else {
+      scene.choices = (sc.choices || []).map(c => ({
+        label: c.label,
+        kind: c.kind || "mid",
+        feedback: c.feedback || "",
+        effects: c.effects || {},
+        nextId: c.nextId !== undefined ? c.nextId : null,
+        next: c.nextRules ? (st => evalRules(st, c.nextRules, "ending_mid")) : undefined,
+      }));
+    }
+    sceneMap[sc.id] = scene;
+  });
+
+  // Always install a finale scene that runs the ending rules.
+  // Overrides any existing "finale" scene to prevent self-loop bugs from
+  // serialized campaigns that reference a code-based next() function.
+  if (lvl.endingRules) {
+    const existingFinale = sceneMap.finale;
+    sceneMap.finale = {
+      title: existingFinale?.title || "Epilogue",
+      text: () => interpolate(existingFinale && typeof existingFinale.text === "function"
+        ? (lvl.scenes.find(s => s.id === "finale")?.text || "Let's see how this played out.")
+        : (lvl.finaleText || "Let's see how this played out."), state),
+      choices: [{
+        label: "Continue...",
+        kind: "mid",
+        feedback: "",
+        effects: {},
+        next: st => evalRules(st, lvl.endingRules, "ending_mid"),
+      }]
+    };
+  }
+
+  // Shared bad endings always available
+  if (!sceneMap.ending_hospital) sceneMap.ending_hospital = sharedEndings.ending_hospital;
+  if (!sceneMap.ending_breakdown) sceneMap.ending_breakdown = sharedEndings.ending_breakdown;
+  if (!sceneMap.ending_jail) sceneMap.ending_jail = sharedEndings.ending_jail;
+  if (!sceneMap.ending_fugitive) sceneMap.ending_fugitive = sharedEndings.ending_fugitive;
+
+  return {
+    id: lvl.id,
+    name: lvl.name,
+    who: lvl.who,
+    desc: lvl.desc,
+    startMoney: lvl.startMoney || 0,
+    defaultName: lvl.defaultName || "You",
+    startId: lvl.startSceneId,
+    scenes: sceneMap,
+    __isCustom: true,
+    __data: lvl,
+  };
+}
+
+// Build educationalContent pack from declarative analysisRules + lessons
+function dataLevelToEducation(lvl) {
+  return {
+    lessons: lvl.lessons || [],
+    analyze: (s) => {
+      const out = [];
+      (lvl.analysisRules || []).forEach(r => {
+        if (evalCondition(s, r.when)) {
+          out.push({ kind: r.kind || "mid", text: interpolate(r.text || "", s) });
+        }
+      });
+      return out;
+    }
+  };
+}
+
+// ============================================================
+// CUSTOM LEVEL STORAGE (localStorage)
+// ============================================================
+const LEVELS_KEY = "nextsteps_levels_v1";
+
+function loadCustomLevels() {
+  try {
+    const raw = localStorage.getItem(LEVELS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) { return []; }
+}
+function saveCustomLevels(list) {
+  try { localStorage.setItem(LEVELS_KEY, JSON.stringify(list)); } catch(e) {}
+}
+function upsertCustomLevel(lvl) {
+  const list = loadCustomLevels();
+  const i = list.findIndex(x => x.id === lvl.id);
+  if (i >= 0) list[i] = lvl; else list.push(lvl);
+  saveCustomLevels(list);
+}
+function deleteCustomLevel(id) {
+  saveCustomLevels(loadCustomLevels().filter(x => x.id !== id));
+}
+function newLevelId() { return "lvl_" + Math.random().toString(36).slice(2, 10); }
+function newSceneId() { return "s_" + Math.random().toString(36).slice(2, 8); }
+
+function blankLevel() {
+  const introId = "intro";
+  return {
+    id: newLevelId(),
+    name: "Untitled Level",
+    who: "Your Character · age · role",
+    desc: "One sentence summary of the scenario.",
+    startMoney: 1000,
+    defaultName: "Alex Rivers",
+    accent: "#4ECDC4",
+    startSceneId: introId,
+    scenes: [
+      { id: introId, title: "Day 1", text: "You are {name}. The scenario begins...\n\nWhat do you do?", choices: [
+        { label: "Do the smart thing.", kind: "good", feedback: "This choice is right because...",
+          effects: { wellbeing: 5, law: -5 }, nextId: "finale" },
+        { label: "Do the risky thing.", kind: "bad", feedback: "This backfires because...",
+          effects: { wellbeing: -5, law: 15 }, nextId: "finale" },
+        { label: "Middle ground.", kind: "mid", feedback: "Not ideal, not disaster.",
+          effects: {}, nextId: "finale" },
+      ]},
+      { id: "ending_good", title: "GOOD ENDING", text: "{name}, one year later. You made it.", ending: true, endingKind: "good" },
+      { id: "ending_mid", title: "MEDIOCRE ENDING", text: "{name}. Still standing. Learned a bit.", ending: true, endingKind: "mid" },
+      { id: "ending_bad", title: "BAD ENDING", text: "{name}. The cost caught up.", ending: true, endingKind: "bad" },
+    ],
+    endingRules: [
+      { if: { lawGte: 70 }, to: "ending_bad" },
+      { if: { wellbeingGte: 60 }, to: "ending_good" },
+      { default: true, to: "ending_mid" },
+    ],
+    lessons: [
+      { t: "Key takeaway 1", d: "What the player should remember from this scenario." },
+    ],
+    analysisRules: [
+      { when: { wellbeingGte: 70 }, kind: "good", text: "You protected your wellbeing — that's the real stat." },
+      { when: { lawGte: 50 }, kind: "bad", text: "You racked up legal risk this run. Most of it was avoidable." },
+    ],
+  };
+}
+
+// ============================================================
+// SHARED ENDING SCENES (used by all scenarios)
+// ============================================================
+const sharedEndings = {
+  ending_jail: { ending: true, kind: "bad", title: "✗ INCARCERATED",
+    text: () => `${state.char.name}. Federal custody. Years you didn't plan to lose.\n\nLessons cost more when you learn them in court.` },
+  ending_fugitive: { ending: true, kind: "bad", title: "✗ FUGITIVE",
+    text: () => `${state.char.name}. A provisional warrant. You'll be extradited.\n\nThere was always a better choice.` },
+  ending_hospital: { ending: true, kind: "bad", title: "✗ HOSPITALIZED",
+    text: () => `${state.char.name}. ER. Exhaustion and untreated condition caught up.\n\nHealth was the real stat.` },
+  ending_breakdown: { ending: true, kind: "bad", title: "✗ BURNED OUT",
+    text: () => `${state.char.name}. You stopped functioning. Everything else stopped too.\n\nWellbeing is not a luxury.` },
+};
+
+// ============================================================
+// SCENARIO 1: THE TAX DEADLINE — Joe Walker, 19
+// ============================================================
+const taxScenes = {
+  intro: {
+    title: "April 14 · 11:47 PM",
+    text: () =>
+`You are ${state.char.name}. Nineteen. Part-time cashier at Walmart for fourteen months. Your mom keeps texting you TikToks about taxes. Your roommate Dev is asleep on the couch with a half-eaten burrito on his chest.
+
+Sixteen tabs open. One flashes: "GET YOUR REFUND IN 24 HOURS — NO QUESTIONS ASKED."
+
+You pull the crumpled W-2 out of a drawer. $1,560. You also did $400 of cash lawn work, $250 for DJing your cousin's wedding (Venmo), and sold an old gaming PC for $600.
+
+Tomorrow is the federal deadline.`,
+    choices: [
+      { label: "File with IRS Free File. Report the W-2 + $400 lawn cash. Skip the PC (sold at a loss) and $250 gift-ish gig.",
+        kind: "good",
+        feedback: "Free File is legit under ~$79k. Cash gigs over $400 are reportable. Personal items sold at a loss generally aren't taxable.",
+        effects: { wellbeing: +10, law: -10, addFlags: ["filed_honestly"] }, nextId: "w4_fix" },
+      { label: "File the W-2 only. The cash jobs are invisible.",
+        kind: "mid",
+        feedback: "IRS matches W-2s/1099s, not cash. Technically evasion on $400 — usually ignored. Usually.",
+        effects: { wellbeing: +2, law: +5, addFlags: ["underreported"] }, nextId: "w4_fix" },
+      { label: "Use TurboTax 'Free.' Click through the $89 upsells.",
+        kind: "mid",
+        feedback: "TurboTax Free is narrow. Any side income forces an upgrade. You paid for a return that should've been free.",
+        effects: { money: -89, wellbeing: +1 }, nextId: "w4_fix" },
+      { label: "Drive to 'Rapid Refund' strip-mall place. $200 fee, advance same day.",
+        kind: "mid",
+        feedback: "Refund-advance loans eat fees. On a $200 refund you basically broke even to pay someone.",
+        effects: { money: -200, wellbeing: +2 }, nextId: "w4_fix" },
+      { label: "Don't file. You barely made anything.",
+        kind: "bad",
+        feedback: "Failure-to-file penalty is 5%/month up to 25%, plus interest. You probably had a refund — forfeit after 3 years.",
+        effects: { wellbeing: -12, law: +20, addFlags: ["didnt_file"], schedule: [[3, "irs_letter"]] }, nextId: "skipped_filing" },
+      { label: "Let Uncle Ray file it. Claim three fake kids. 70/30 split of the $6k refund.",
+        kind: "bad",
+        feedback: "Straight-up fraud. The IRS has automated matching — they WILL find it.",
+        effects: { money: +6000, wellbeing: -8, law: +45, addFlags: ["tax_fraud"], schedule: [[2, "irs_visit"]] }, nextId: "fraud_refund" },
+    ]
+  },
+  w4_fix: {
+    title: "Two days later — Walmart break room",
+    text: () => `Your manager Rhonda slides a W-4 across the lunch table. "You filled this out 'EXEMPT.' That's why nothing was withheld. Refile it or I have to bump you to single-zero."`,
+    choices: [
+      { label: "Fill it out honestly. Single, no dependents, no adjustments.",
+        kind: "good", feedback: "Correct default for most 19-year-olds. Withholding now = no surprise bill later.",
+        effects: { wellbeing: +5 }, nextId: "refund" },
+      { label: "Claim EXEMPT again. Bigger paychecks.",
+        kind: "bad", feedback: "Only truly exempt if zero liability last year AND expected this year. False claim = underpayment penalties.",
+        effects: { wellbeing: -3, law: +8, schedule: [[4, "owe_irs"]] }, nextId: "refund" },
+      { label: "Ask Rhonda what it means before signing.",
+        kind: "good", feedback: "30 seconds of feeling dumb > years of tax confusion. Rhonda's done this 22 years.",
+        effects: { wellbeing: +6 }, nextId: "refund" },
+      { label: "Copy what Dev put on his.",
+        kind: "mid", feedback: "Dev claims four dependents and has zero. You'll find out in April.",
+        effects: { wellbeing: -1 }, nextId: "refund" }
+    ]
+  },
+  refund: {
+    title: "A week later",
+    text: () => `A $112 refund lands. Dev waves an envelope at you. "Open enrollment. You're on your mom's insurance till 26, right?"`,
+    choices: [
+      { label: "Call mom. Confirm you're on her employer plan.",
+        kind: "good", feedback: "ACA lets you stay on a parent's plan until 26. Two-minute call, zero dollars.",
+        effects: { wellbeing: +6, addFlags: ["insured"] }, nextId: "car_trouble" },
+      { label: "Sign up for $40/mo 'MediSave Plus' from Instagram.",
+        kind: "bad", feedback: "Health-sharing ministries aren't insurance. Not regulated. Denies claims routinely.",
+        effects: { money: -40, wellbeing: -4, addFlags: ["fake_insurance"] }, nextId: "car_trouble" },
+      { label: "Skip it. You're young and invincible.",
+        kind: "mid", feedback: "One ER visit wipes that logic out. But you might get lucky.",
+        effects: { wellbeing: -2, addFlags: ["uninsured"] }, nextId: "car_trouble" },
+      { label: "Enroll in a marketplace Bronze plan ($0 premium at your income).",
+        kind: "good", feedback: "At your AGI you'd qualify for Medicaid in most states. Bronze works too.",
+        effects: { wellbeing: +7, addFlags: ["insured"] }, nextId: "car_trouble" }
+    ]
+  },
+  skipped_filing: {
+    title: "Three weeks later",
+    text: () => `Nothing has happened. Obviously you got away with it. Your buddy offers you a 2009 Civic for $2,000 cash.`,
+    choices: [
+      { label: "Buy it, register it, get liability insurance ($90/mo).",
+        kind: "good", feedback: "Liability is legally required in 48 states. You did it right.",
+        effects: { money: -2090, wellbeing: +5, addFlags: ["has_car", "insured_car"] }, nextId: "car_trouble" },
+      { label: "Buy it. Skip insurance and registration.",
+        kind: "bad", feedback: "Driving uninsured is a misdemeanor. Unregistered is a ticket waiting to happen.",
+        effects: { money: -2000, wellbeing: -5, law: +15, addFlags: ["has_car", "no_insurance_car"], schedule: [[2, "traffic_stop"]] }, nextId: "car_trouble" },
+      { label: "Pass. Can't afford it right now.",
+        kind: "mid", feedback: "Responsible but limits your job options.",
+        effects: { wellbeing: +1 }, nextId: "car_trouble" }
+    ]
+  },
+  fraud_refund: {
+    title: "Two weeks later",
+    text: () => `$6,000 hit your account. Uncle Ray wants his $2,000 cut. You feel like a king. A very nervous king.`,
+    choices: [
+      { label: "Pay him. Blow the rest on a PS5, sneakers, DoorDash.",
+        kind: "bad", feedback: "Spent evidence is still evidence.",
+        effects: { money: -5500, wellbeing: -5 }, nextId: "car_trouble" },
+      { label: "Pay him. Stash the rest.",
+        kind: "mid", feedback: "You still committed fraud. Hiding it doesn't undo it.",
+        effects: { money: -2000, wellbeing: -3 }, nextId: "car_trouble" },
+      { label: "Call the IRS. Admit the fraud. Offer to pay it back.",
+        kind: "good", feedback: "Voluntary disclosure massively reduces penalties. Brave call.",
+        effects: { money: -6000, wellbeing: +10, law: -50, rmFlags: ["tax_fraud"] },
+        onRun: () => { state.pendingEvents = state.pendingEvents.filter(e => e.sceneId !== "irs_visit"); },
+        nextId: "car_trouble" }
+    ]
+  },
+  car_trouble: {
+    title: "A month later · Tuesday 7:42 AM",
+    text: () => `Running late. Light turns yellow. You gun it. Blue lights. Immediately.\n\n"License and registration."`,
+    choices: [
+      { label: "Hand them over. 'Yes sir, no sir.' Take the ticket.",
+        kind: "good", feedback: "Polite compliance + signing the ticket (not an admission) is the playbook.",
+        effects: { money: -175, wellbeing: +2 }, nextId: "jury_duty" },
+      { label: "Argue the light was 'clearly still yellow.' Demand a supervisor.",
+        kind: "mid", feedback: "Your rights exist. Roadside is the worst venue. Fight it in court.",
+        effects: { money: -175, wellbeing: -3 }, nextId: "jury_duty" },
+      { label: "Speed off.",
+        kind: "bad", feedback: "Felony evading. Every other flag just got worse.",
+        effects: { wellbeing: -15, law: +40, addFlags: ["evaded_police"], schedule: [[1, "warrant"]] }, nextId: "jury_duty" },
+      { label: "Consent to a full vehicle search.",
+        kind: "mid", feedback: "You aren't obligated. 'I do not consent to searches' is a full sentence.",
+        effects: { money: -175, wellbeing: +1 }, nextId: "jury_duty" }
+    ]
+  },
+  jury_duty: {
+    title: "Six weeks later",
+    text: () => `JURY SUMMONS. Report Monday at 8 AM or face contempt.`,
+    choices: [
+      { label: "Show up. Sit for 6 hours. Get dismissed.",
+        kind: "good", feedback: "Civic duty. Employers must legally give time off.",
+        effects: { wellbeing: +4 }, nextId: "credit" },
+      { label: "Ignore it. Trash it.",
+        kind: "bad", feedback: "Failure to appear = bench warrant. Fines up to $1,000.",
+        effects: { wellbeing: -10, law: +20, addFlags: ["missed_jury"], schedule: [[2, "warrant"]] }, nextId: "credit" },
+      { label: "Request a postponement online.",
+        kind: "good", feedback: "Totally legit. Most courts allow it with a few clicks.",
+        effects: { wellbeing: +3 }, nextId: "credit" },
+      { label: "Show up dressed as a clown to get dismissed.",
+        kind: "mid", feedback: "You did your duty. Technically. Judge was not amused.",
+        effects: { wellbeing: +1 }, nextId: "credit" }
+    ]
+  },
+  credit: {
+    title: "A few months in",
+    text: () => `Mail: 'PRE-APPROVED! 29.99% APR, $500 limit.' Also: secured card ($200 deposit, reports to all 3 bureaus).`,
+    choices: [
+      { label: "Secured card. Charge gas. Pay in full every month.",
+        kind: "good", feedback: "Fastest legit way to build credit at 19. Full payment = no interest.",
+        effects: { money: -200, wellbeing: +6, addFlags: ["building_credit"] }, nextId: "side_hustle" },
+      { label: "29.99% card. Max it on apartment furniture.",
+        kind: "bad", feedback: "Minimum payments at 29.99% = years of interest. Classic trap.",
+        effects: { money: +500, wellbeing: -8, addFlags: ["credit_card_debt"] }, nextId: "side_hustle" },
+      { label: "Neither. Cash only forever.",
+        kind: "mid", feedback: "No credit history = hard to rent, hard to get a car loan. Slow.",
+        effects: { wellbeing: -1 }, nextId: "side_hustle" },
+      { label: "Authorized user on mom's 20-year-old card.",
+        kind: "good", feedback: "Inherits her history. Legal, effective, free.",
+        effects: { wellbeing: +5, addFlags: ["building_credit"] }, nextId: "side_hustle" }
+    ]
+  },
+  side_hustle: {
+    title: "Four months later",
+    text: () => `Cousin Marco wants you to 'deposit checks for him' at your bank. 10% per check. Says it's 'invoice processing.'`,
+    choices: [
+      { label: "Do it. Easy money.",
+        kind: "bad", feedback: "Mule scheme. Federal wire fraud + laundering. Account frozen, charges follow.",
+        effects: { money: +400, wellbeing: -8, law: +50, addFlags: ["money_mule"], schedule: [[2, "fbi_visit"]] }, nextId: "healthcare" },
+      { label: "Decline. Hard no.",
+        kind: "good", feedback: "Anyone asking to run money through your account is scamming or using you.",
+        effects: { wellbeing: +7 }, nextId: "healthcare" },
+      { label: "Agree, 'just once' to see if it's real.",
+        kind: "bad", feedback: "One deposit is enough. There is no 'just once.'",
+        effects: { money: +40, wellbeing: -6, law: +35, addFlags: ["money_mule"], schedule: [[3, "fbi_visit"]] }, nextId: "healthcare" },
+      { label: "Report him to the bank's fraud line.",
+        kind: "good", feedback: "Harsh but right. Banks log this. You're protected.",
+        effects: { wellbeing: +6 }, nextId: "healthcare" }
+    ]
+  },
+  healthcare: {
+    title: "Saturday · 2 AM",
+    text: () => `You slice your hand open chopping onions. Won't stop bleeding.`,
+    choices: [
+      { label: "Urgent care (~$150 insured, $300 not).",
+        kind: "good", feedback: "Right choice for non-life-threatening. ER is 5-10x more.",
+        effects: { money: () => hasMod("f1_visa") ? -300 : (state.flags.has("insured") ? -150 : -300), health: -3, wellbeing: +3 }, nextId: "retirement" },
+      { label: "ER. You want the 'real' doctors.",
+        kind: "mid", feedback: "Stitches in ER = $1,500-3,000. Insurance helps but deductibles exist.",
+        effects: { money: state?.flags.has("insured") ? -500 : -2500, health: -2 }, nextId: "retirement" },
+      { label: "Superglue and paper towel. YouTube said.",
+        kind: "bad", feedback: "Sometimes works. Sometimes tendon infection.",
+        effects: { health: -15, wellbeing: -5 }, nextId: "retirement" },
+      { label: "Call nurse hotline first (free with most insurance).",
+        kind: "good", feedback: "Triage calls are free. Underused.",
+        effects: { money: state?.flags.has("insured") ? -150 : -300, health: -2, wellbeing: +5 }, nextId: "retirement" }
+    ]
+  },
+  retirement: {
+    title: "Promotion · payroll onboarding",
+    text: () => `Promoted. $42k/year. HR slides a 401(k) form across the desk. 100% match up to 4%.`,
+    choices: [
+      { label: "Contribute 4%. Free $1,680/year in match.",
+        kind: "good", feedback: "Match = 100% instant return. Not contributing is leaving cash on the table.",
+        effects: { wellbeing: +10, addFlags: ["retirement_started"] }, nextId: "finale" },
+      { label: "0%. 'I'll start when I'm older.'",
+        kind: "bad", feedback: "Starting at 30 vs 19 costs ~$300k by retirement. Compounding is unfair.",
+        effects: { wellbeing: -5 }, nextId: "finale" },
+      { label: "15%. Max it out aggressively.",
+        kind: "mid", feedback: "Admirable, but on $42k your budget will hurt. 4-6% early is the sweet spot.",
+        effects: { wellbeing: +4, addFlags: ["retirement_started"] }, nextId: "finale" },
+      { label: "Ask HR about Roth vs Traditional before picking.",
+        kind: "good", feedback: "At low income, Roth usually wins. Asking is 80% of the battle.",
+        effects: { wellbeing: +8, addFlags: ["retirement_started"] }, nextId: "finale" }
+    ]
+  },
+
+  // Delayed consequences
+  irs_letter: {
+    title: "⚠ A letter arrives",
+    text: () => `IRS Notice CP59. 'We have no record of your return.' $340 in penalties + interest.`,
+    choices: [
+      { label: "File immediately. Pay. Apologize.",
+        kind: "good", feedback: "Penalties stop accruing the day you file. Always file, even late.",
+        effects: { money: -340, wellbeing: +2, law: -30, rmFlags: ["didnt_file"] }, nextId: null },
+      { label: "Throw it away.",
+        kind: "bad", feedback: "The IRS does not forget. Next letter is from a Revenue Officer.",
+        effects: { wellbeing: -8, law: +20, schedule: [[3, "irs_visit"]] }, nextId: null }
+    ]
+  },
+  irs_visit: {
+    title: "🚨 Knock knock",
+    text: () => `Two IRS agents at your door. They know. They want to talk.`,
+    choices: [
+      { label: "Cooperate. Ask for a payment plan.",
+        kind: "good", feedback: "Installment agreements exist. Cooperation usually avoids criminal referral.",
+        effects: { money: -3000, wellbeing: -2, law: -50, rmFlags: ["tax_fraud"] }, nextId: null },
+      { label: "Slam the door. Pack a bag. Drive to Vancouver.",
+        kind: "bad", feedback: "You are now a fugitive. The border has cameras.",
+        effects: { wellbeing: -20, law: +30, addFlags: ["fugitive", "in_vancouver"], schedule: [[4, "vancouver_knock"]] }, nextId: null },
+      { label: "Lawyer up.",
+        kind: "good", feedback: "Textbook. A tax attorney costs $2k but can save you from prison.",
+        effects: { money: -2000, wellbeing: +3, law: -40 }, nextId: null }
+    ]
+  },
+  vancouver_knock: {
+    title: "🚨 Vancouver · 6 months later",
+    text: () => `You thought you were safe. RCMP has a provisional warrant. Knock at your hostel door.`,
+    choices: [
+      { label: "Surrender.", kind: "mid", feedback: "Extradition + cooperation still beats running.",
+        effects: { wellbeing: -10, rmFlags: ["fugitive"] }, nextId: "ending_jail" },
+      { label: "Run again.", kind: "bad", feedback: "You are 19 and broke.",
+        effects: { wellbeing: -30 }, nextId: "ending_fugitive" }
+    ]
+  },
+  traffic_stop: {
+    title: "🚨 Flashing lights",
+    text: () => `You're uninsured and unregistered. Routine stop.`,
+    choices: [
+      { label: "Honest. Accept the tow and tickets.",
+        kind: "mid", feedback: "Painful but survivable. ~$1,200 total.",
+        effects: { money: -1200, wellbeing: -4, rmFlags: ["no_insurance_car"] }, nextId: null },
+      { label: "Flee.", kind: "bad", feedback: "Pursuit. Escalates fast.",
+        effects: { wellbeing: -20, law: +50, addFlags: ["evaded_police"], schedule: [[1, "warrant"]] }, nextId: null }
+    ]
+  },
+  warrant: {
+    title: "🚨 Warrant issued",
+    text: () => `Active warrant. Surfaces at the next stop, airport, or background check.`,
+    choices: [
+      { label: "Turn yourself in with a lawyer.",
+        kind: "good", feedback: "Voluntary surrender + counsel = lower bail, better plea.",
+        effects: { money: -2000, wellbeing: +2, law: -40, rmFlags: ["evaded_police", "missed_jury"] }, nextId: null },
+      { label: "Keep living like nothing's wrong.",
+        kind: "bad", feedback: "Works until it doesn't.",
+        effects: { wellbeing: -15, law: +20, schedule: [[3, "arrest"]] }, nextId: null }
+    ]
+  },
+  fbi_visit: {
+    title: "🚨 FBI at your door",
+    text: () => `Financial Crimes Task Force. Bank records, Marco's records, your texts.`,
+    choices: [
+      { label: "Cooperate. Testify against Marco.",
+        kind: "mid", feedback: "Cooperation agreements exist. Record stays, prison usually doesn't.",
+        effects: { wellbeing: -10, rmFlags: ["money_mule"], addFlags: ["felony_record"] }, nextId: null },
+      { label: "Say nothing. Lawyer up.",
+        kind: "good", feedback: "Never talk to federal agents without an attorney.",
+        effects: { money: -5000, wellbeing: -2, law: -30, rmFlags: ["money_mule"] }, nextId: null },
+      { label: "Try to explain it away.",
+        kind: "bad", feedback: "Lying to a federal agent = 18 USC 1001. Separate felony.",
+        effects: { wellbeing: -18, schedule: [[1, "arrest"]] }, nextId: null }
+    ]
+  },
+  owe_irs: {
+    title: "⚠ April rolls around",
+    text: () => `You claimed EXEMPT. Nothing withheld. You owe $1,100.`,
+    choices: [
+      { label: "Set up an IRS installment plan.",
+        kind: "good", feedback: "Low-interest, automatic, saves your credit.",
+        effects: { money: -200, wellbeing: +2, law: -20 }, nextId: null },
+      { label: "Ignore it.",
+        kind: "bad", feedback: "Wage garnishment incoming.",
+        effects: { wellbeing: -15, law: +25, schedule: [[3, "irs_visit"]] }, nextId: null }
+    ]
+  },
+  arrest: {
+    title: "🚨 Arrested",
+    text: () => `Handcuffs. Booking. A public defender with 80 other cases.`,
+    choices: [
+      { label: "Take the plea.", kind: "mid", feedback: "Most cases end in pleas.",
+        effects: { wellbeing: -10, addFlags: ["felony_record"] }, nextId: "ending_jail" }
+    ]
+  },
+
+  ending_good: { ending: true, kind: "good", title: "✓ YOU GREW UP",
+    text: () => `${state.char.name}, five years later. Employed. Insured. Credit score 740. Retirement compounding in the background.\n\nNo one throws a parade for this. That's adulthood.` },
+  ending_mid: { ending: true, kind: "mid", title: "∼ GETTING BY",
+    text: () => `${state.char.name}. Still renting. Still nervous about government mail. Free, employed, learning.\n\nMost people's real ending.` },
+  ending_bad: { ending: true, kind: "bad", title: "✗ IT ALL CAUGHT UP",
+    text: () => `${state.char.name}. Wage garnishment. Tanked credit. Every future application asks about the record.\n\nIgnoring the letters was the worst possible trade.` },
+  ending_jail: sharedEndings.ending_jail,
+  ending_fugitive: sharedEndings.ending_fugitive,
+  ending_hospital: sharedEndings.ending_hospital,
+  ending_breakdown: sharedEndings.ending_breakdown,
+
+  finale: {
+    title: "Five years later",
+    text: () => `You're 24. Let's see how it played out.`,
+    choices: [
+      { label: "Continue...", kind: "mid", feedback: "",
+        effects: {},
+        next: s => {
+          if (s.flags.has("fugitive")) return "ending_fugitive";
+          if (s.flags.has("felony_record")) return "ending_jail";
+          if (s.law >= 70) return "ending_bad";
+          if (s.stats.wellbeing >= 70 && !s.flags.has("tax_fraud")) return "ending_good";
+          return "ending_mid";
+        }
+      }
+    ]
+  }
+};
+
+// ============================================================
+// SCENARIO 2: THE LEASE — Maya Chen, 22
+// ============================================================
+const leaseScenes = {
+  intro: {
+    title: "August · Craigslist at 1 AM",
+    text: () => `You are ${state.char.name}. Twenty-two. Three weeks out of college, one week into a $44k admin job in a new city. You have $3,200 and a U-Haul reservation for Saturday.
+
+A listing just appeared: 1BR, $1,350/mo, "newly renovated." The photos are suspiciously well-lit. "Greg" will only communicate over text.
+
+Greg wants $200 via Zelle before he'll show you the place. "Lots of interest," he writes.
+
+Move-in deadline in 9 days.`,
+    choices: [
+      { label: "Pay the $200. He's probably legit.",
+        kind: "bad", feedback: "Classic rental scam. Real landlords take app fees AFTER showings, never Zelle to a personal account.",
+        effects: { money: -200, wellbeing: -8 }, nextId: "real_listing" },
+      { label: "Insist on seeing it in person first. No money up front.",
+        kind: "good", feedback: "Correct. Greg ghosts you within the hour. You dodged a scam.",
+        effects: { wellbeing: +8 }, nextId: "real_listing" },
+      { label: "Reverse-image search the photos.",
+        kind: "good", feedback: "Photos are from a 2019 Dallas listing. Greg is not real. Saved $200 and a weekend.",
+        effects: { wellbeing: +10 }, nextId: "real_listing" },
+      { label: "Offer $500 to 'lock it in' ahead of others.",
+        kind: "bad", feedback: "You got extra-scammed. Greg blocks your number.",
+        effects: { money: -500, wellbeing: -12 }, nextId: "real_listing" }
+    ]
+  },
+  real_listing: {
+    title: "Four days later — a real showing",
+    text: () => `An actual apartment with a real leasing agent. $1,295/mo, 620 sq ft, 4th floor. Faint smell. 16-page lease slid across the table. Pen uncapped.`,
+    choices: [
+      { label: "Read every page. Ask about the smell.",
+        kind: "good", feedback: "Smell turns out to be a plumbing issue being fixed. You catch a 'mandatory renter's insurance' clause which is standard and fine.",
+        effects: { wellbeing: +10, addFlags: ["read_lease"] }, nextId: "utilities" },
+      { label: "Skim. Sign. You need housing.",
+        kind: "mid", feedback: "Missed a $75/mo 'amenity fee' (gym closed 2019) and an automatic rent escalator.",
+        effects: { money: -75, wellbeing: -3, addFlags: ["bad_lease"] }, nextId: "utilities" },
+      { label: "Take it home overnight. Read with coffee tomorrow.",
+        kind: "good", feedback: "Any real landlord says yes. You catch two problem clauses; both get initialed out.",
+        effects: { wellbeing: +12, addFlags: ["read_lease"] }, nextId: "utilities" },
+      { label: "Push back on 'first, last, and two months deposit' ($5,180).",
+        kind: "good", feedback: "Deposits over 2 months' rent are illegal in most states. Negotiate to 1 month.",
+        effects: { money: -2590, wellbeing: +8, addFlags: ["read_lease"] }, nextId: "utilities" },
+      { label: "Sign without reading. Agent seems nice.",
+        kind: "bad", feedback: "You agreed to pay the landlord's legal fees if he sues YOU, and waived jury trial.",
+        effects: { wellbeing: -10, law: +5, addFlags: ["bad_lease"] }, nextId: "utilities" }
+    ]
+  },
+  utilities: {
+    title: "Move-in day",
+    text: () => `No electricity, no gas, no internet. Clipboard with four companies. Flyer: "ENERGY SAVERS LLC — FIXED RATES FOREVER."`,
+    choices: [
+      { label: "Call the default utility company directly. Skip the flyer.",
+        kind: "good", feedback: "'Fixed rate' resellers: low then balloon. Millions in complaints at state PUCs.",
+        effects: { wellbeing: +7 }, nextId: "roommate" },
+      { label: "Sign up with Energy Savers.",
+        kind: "bad", feedback: "Month 1: $45. Month 6: $210 for same usage. $250 termination fee.",
+        effects: { money: -200, wellbeing: -5, schedule: [[3, "utility_bill"]] }, nextId: "roommate" },
+      { label: "Everything on autopay. One less thing.",
+        kind: "mid", feedback: "Fine, but checking first bills catches billing errors.",
+        effects: { wellbeing: +2 }, nextId: "roommate" },
+      { label: "Skip internet for a month. Hotspot.",
+        kind: "mid", feedback: "You blow through data in 4 days on a work video call.",
+        effects: { money: -60, wellbeing: -5 }, nextId: "roommate" }
+    ]
+  },
+  roommate: {
+    title: "Three weeks in",
+    text: () => `Your friend Priya calls in tears. Lost her job. Can't make rent. Begs to crash 'just for a month.' Your lease allows one additional occupant with written notice.`,
+    choices: [
+      { label: "Let her stay. Tell the landlord in writing.",
+        kind: "good", feedback: "Protects both of you. Priya has tenant rights, you don't violate your lease.",
+        effects: { wellbeing: +8 }, nextId: "repair" },
+      { label: "Let her stay secretly.",
+        kind: "bad", feedback: "Unauthorized occupant clause = grounds for eviction.",
+        effects: { wellbeing: -5, law: +10, addFlags: ["lease_violation"], schedule: [[3, "eviction_notice"]] }, nextId: "repair" },
+      { label: "Let her stay 2 weeks max. Written agreement.",
+        kind: "good", feedback: "Most leases allow guests up to 14 days without notification.",
+        effects: { wellbeing: +7 }, nextId: "repair" },
+      { label: "Say no.",
+        kind: "mid", feedback: "Harsh but defensible. You Venmo her $200 for a motel.",
+        effects: { money: -200, wellbeing: -2 }, nextId: "repair" },
+      { label: "Charge her $800/mo under the table.",
+        kind: "bad", feedback: "Illegal sublessor + tax evader.",
+        effects: { money: +800, wellbeing: -10, law: +15, addFlags: ["illegal_sublease"] }, nextId: "repair" }
+    ]
+  },
+  repair: {
+    title: "Two months in · black stuff on the wall",
+    text: () => `Mold. Bathroom ceiling. Spreading. Cough for a week. Landlord doesn't reply for 6 days.`,
+    choices: [
+      { label: "Send written notice via certified mail. Document everything.",
+        kind: "good", feedback: "Warranty of habitability exists in almost every state. Certified mail = paper trail.",
+        effects: { wellbeing: +12, addFlags: ["documented_repair"] }, nextId: "deposit" },
+      { label: "Bleach it yourself. Don't mention it.",
+        kind: "bad", feedback: "Surface mold covered; source is a wall leak. In 6 months it's structural damage blamed on you.",
+        effects: { health: -12, wellbeing: -8, schedule: [[2, "mold_returns"]] }, nextId: "deposit" },
+      { label: "Stop paying rent until fixed.",
+        kind: "bad", feedback: "Some states allow escrow withholding, but just not paying = eviction grounds.",
+        effects: { wellbeing: -12, law: +15, addFlags: ["withheld_rent"], schedule: [[2, "eviction_notice"]] }, nextId: "deposit" },
+      { label: "Call city housing code enforcement.",
+        kind: "good", feedback: "Free inspector within a week. Landlord cited. Repairs in 72 hours.",
+        effects: { wellbeing: +10, addFlags: ["documented_repair"] }, nextId: "deposit" },
+      { label: "Pay a mold company $800, deduct from rent.",
+        kind: "mid", feedback: "Repair-and-deduct is legal in some states with specific notice first.",
+        effects: { money: -800, wellbeing: +1 }, nextId: "deposit" }
+    ]
+  },
+  deposit: {
+    title: "A year later · move-out",
+    text: () => `Cleaned. 50 photos of every wall. Landlord emails: 'Deposit refund: $0. Deductions: carpet $1,400, cleaning $350, paint $600.' Your deposit was $1,295.`,
+    choices: [
+      { label: "Demand letter citing state law. Itemized receipts required within 14-30 days.",
+        kind: "good", feedback: "Many states award DOUBLE or TRIPLE damages for bogus deductions.",
+        effects: { money: +1295, wellbeing: +8, addFlags: ["got_deposit"] }, nextId: "finale" },
+      { label: "File in small claims court. $75 filing fee.",
+        kind: "good", feedback: "No lawyer needed. You win $2,590 plus filing fee.",
+        effects: { money: +2515, wellbeing: +12, addFlags: ["got_deposit"] }, nextId: "finale" },
+      { label: "Accept it. Landlords always do this.",
+        kind: "bad", feedback: "$1,295 gone because you didn't send one letter. Most common money mistake young renters make.",
+        effects: { wellbeing: -8 }, nextId: "finale" },
+      { label: "Scathing Google review, call it even.",
+        kind: "mid", feedback: "Cathartic. Not money. Also risks defamation if you overstate.",
+        effects: { wellbeing: -2 }, nextId: "finale" }
+    ]
+  },
+
+  utility_bill: {
+    title: "⚠ The electric bill",
+    text: () => `$340 for one month. Fine print: 'variable rate after promo.'`,
+    choices: [
+      { label: "File PUC complaint. Switch back to default.",
+        kind: "good", feedback: "PUC complaints are free and often force refunds.",
+        effects: { money: -100, wellbeing: +5 }, nextId: null },
+      { label: "Pay it and eat the loss.",
+        kind: "mid", feedback: "Rate keeps climbing.",
+        effects: { money: -340, wellbeing: -3 }, nextId: null }
+    ]
+  },
+  mold_returns: {
+    title: "⚠ The ceiling caves",
+    text: () => `Section of bathroom ceiling collapses. Landlord blames YOU for 'failure to notify.'`,
+    choices: [
+      { label: "Produce any text/email/receipt from when you first noticed.",
+        kind: "good", feedback: "Even a single text with a date saves you.",
+        effects: { wellbeing: +3 }, nextId: null },
+      { label: "Argue verbally. No paper trail.",
+        kind: "bad", feedback: "Landlord sues for $8,000. You have no evidence.",
+        effects: { money: -3000, wellbeing: -15, law: +15 }, nextId: null }
+    ]
+  },
+  eviction_notice: {
+    title: "🚨 A notice taped to your door",
+    text: () => `3-DAY NOTICE TO CURE OR QUIT. Lease termination.`,
+    choices: [
+      { label: "Contact legal aid clinic immediately.",
+        kind: "good", feedback: "Most cities have free tenant legal aid. They can halt eviction.",
+        effects: { wellbeing: +5, law: -10, rmFlags: ["lease_violation", "withheld_rent"] }, nextId: null },
+      { label: "Ignore it.",
+        kind: "bad", feedback: "Eviction on record = no lease approval for 7 years.",
+        effects: { wellbeing: -25, law: +25, addFlags: ["eviction_record"] }, nextId: null }
+    ]
+  },
+
+  ending_good: { ending: true, kind: "good", title: "✓ YOU KNOW YOUR RIGHTS",
+    text: () => `${state.char.name}, 23. Deposit back. Credit unhurt. A notebook full of lease clauses you'll catch next time.\n\nBeing a tenant is a job. You're good at it now.` },
+  ending_mid: { ending: true, kind: "mid", title: "∼ RENTER BY ATTRITION",
+    text: () => `${state.char.name}, 23. Lost some money, learned slowly, signed a new lease you didn't fully read.\n\nBut you're housed. That counts.` },
+  ending_bad: { ending: true, kind: "bad", title: "✗ EVICTED",
+    text: () => `${state.char.name}, 23. Eviction on record. Seven years of denied applications.\n\nThe lease was always the most important thing in the room.` },
+  ending_jail: sharedEndings.ending_jail,
+  ending_fugitive: sharedEndings.ending_fugitive,
+  ending_hospital: sharedEndings.ending_hospital,
+  ending_breakdown: sharedEndings.ending_breakdown,
+
+  finale: {
+    title: "Thirteen months later",
+    text: () => `Let's see how you landed.`,
+    choices: [
+      { label: "Continue...", kind: "mid", feedback: "", effects: {},
+        next: s => {
+          if (s.flags.has("eviction_record")) return "ending_bad";
+          if (s.stats.wellbeing >= 65 && s.flags.has("got_deposit")) return "ending_good";
+          return "ending_mid";
+        }
+      }
+    ]
+  }
+};
+
+// ============================================================
+// SCENARIO 3: THE OFFER — Dmitri Park, 24
+// ============================================================
+const jobScenes = {
+  intro: {
+    title: "Tuesday · inbox at 4:12 PM",
+    text: () => `You are ${state.char.name}. Twenty-four. Two years of contract work and a degree you're paying off. Lindsay from HR at Beacon Analytics sent an email:
+
+"$62,000 base, benefits eligible, 3 weeks out. Please sign and return within 48 hours."
+
+31-page PDF. A salary number, 6-month probation, a non-compete, arbitration clause, a 'confidentiality' section forbidding wage discussion, and a relocation clause requiring 2 years.
+
+Your current contract ends Friday.`,
+    choices: [
+      { label: "Sign tonight. You need the job.",
+        kind: "bad", feedback: "You agreed to things you didn't read. The non-compete could block your whole industry for a year. Arbitration waives your right to sue.",
+        effects: { money: +5166, wellbeing: -8, addFlags: ["signed_blind", "noncompete"] }, nextId: "negotiate_outcome" },
+      { label: "Ask for a week to review with an employment lawyer.",
+        kind: "good", feedback: "Real companies grant extensions. If they pull the offer, they weren't going to treat you well anyway.",
+        effects: { wellbeing: +8 }, nextId: "negotiate_salary" },
+      { label: "Counter at $72k. Point to market data.",
+        kind: "good", feedback: "~60% of first offers have room. Meet-in-the-middle at $67k is common.",
+        effects: { wellbeing: +6, addFlags: ["negotiated"] }, nextId: "negotiate_salary" },
+      { label: "Sign but email asking to strike the non-compete.",
+        kind: "mid", feedback: "You already signed. Your leverage is gone. Lindsay politely says 'we can discuss at review.' She won't.",
+        effects: { money: +5166, wellbeing: -3, addFlags: ["signed_blind", "noncompete"] }, nextId: "negotiate_outcome" },
+      { label: "Ask what the total compensation is.",
+        kind: "good", feedback: "Base + bonus + match + PTO + health. A $62k base with great benefits can beat a $68k base with none.",
+        effects: { wellbeing: +10 }, nextId: "negotiate_salary" }
+    ]
+  },
+  negotiate_salary: {
+    title: "Two days later — the phone call",
+    text: () => `Lindsay: "We can go to $66,500, add a $3,000 signing bonus, shorten the non-compete to 6 months within 50 miles. Arbitration is standard, can't change it."`,
+    choices: [
+      { label: "Accept. Get it in writing before signing.",
+        kind: "good", feedback: "Always get verbal offers in writing.",
+        effects: { money: +3000, wellbeing: +7 }, nextId: "w4_benefits" },
+      { label: "Push for $70k AND full non-compete removal.",
+        kind: "mid", feedback: "Lindsay says $68k OR non-compete removal, not both. You won; you pushed past the win.",
+        effects: { wellbeing: +1, addFlags: ["noncompete"] }, nextId: "w4_benefits" },
+      { label: "Ask to carve arbitration for wage/hour claims.",
+        kind: "good", feedback: "Sophisticated ask. Lindsay notes it, adds a 30-day opt-out period.",
+        effects: { wellbeing: +5 }, nextId: "w4_benefits" },
+      { label: "Accept verbally. Sign whenever.",
+        kind: "mid", feedback: "Verbal offers aren't enforceable in most states.",
+        effects: { wellbeing: +1 }, nextId: "w4_benefits" }
+    ]
+  },
+  negotiate_outcome: {
+    title: "Start date · signing day",
+    text: () => `You signed. $62k. All clauses intact. Start in 3 weeks. Lindsay sends a welcome kit.`,
+    choices: [
+      { label: "Continue to paperwork...", kind: "mid", feedback: "", effects: {}, nextId: "w4_benefits" }
+    ]
+  },
+  w4_benefits: {
+    title: "Onboarding · 47 tabs of paperwork",
+    text: () => `W-4 (withholding), benefits (medical/dental/vision/HSA/FSA/401k), direct deposit. Friend Jen: "claim a bunch of dependents." Friend Amir: "max the HSA."`,
+    choices: [
+      { label: "W-4 single/no deps. 401(k) at least 5% match. HSA if on HDHP. Skip upsells.",
+        kind: "good", feedback: "Optimal default. HSA = triple tax benefit. Match = free money.",
+        effects: { wellbeing: +12, addFlags: ["benefits_optimized", "retirement_started"] }, nextId: "first_paycheck" },
+      { label: "Claim 5 dependents on W-4. Bigger checks.",
+        kind: "bad", feedback: "You don't support 5 people. You'll owe $6,000+ in April with penalties.",
+        effects: { wellbeing: -5, law: +15, addFlags: ["w4_wrong"], schedule: [[4, "tax_surprise"]] }, nextId: "first_paycheck" },
+      { label: "0% 401(k). Start later.",
+        kind: "bad", feedback: "Leaving match = leaving $3,300/year free money. 40 years of compounding = ~$400k.",
+        effects: { wellbeing: -5 }, nextId: "first_paycheck" },
+      { label: "Max 401(k) AND HSA aggressively.",
+        kind: "mid", feedback: "Admirable, but on $66k gross you're house-poor. 10-15% + full HSA is the sweet spot.",
+        effects: { wellbeing: +2, addFlags: ["retirement_started"] }, nextId: "first_paycheck" },
+      { label: "Enroll in everything HR offers.",
+        kind: "mid", feedback: "Cancer insurance, pet insurance, identity theft — $180/mo in noise.",
+        effects: { money: -180, wellbeing: -3 }, nextId: "first_paycheck" }
+    ]
+  },
+  first_paycheck: {
+    title: "Payday · two weeks in",
+    text: () => `Gross $2,554, net $1,782. Nine line items. One says 'CORPWELLNESS — $14.' You don't remember signing up.`,
+    choices: [
+      { label: "Email payroll. Ask for the source doc.",
+        kind: "good", feedback: "Unauthorized deductions violate FLSA. Quietly refunded.",
+        effects: { money: +14, wellbeing: +5 }, nextId: "workplace_issue" },
+      { label: "Ignore it. $14 isn't worth it.",
+        kind: "mid", feedback: "$14/week × 2 years = $1,456. Small deductions are how companies skim.",
+        effects: { wellbeing: -2 }, nextId: "workplace_issue" },
+      { label: "Verify every line item.",
+        kind: "good", feedback: "You catch your state withholding is set to the wrong state, saving an April nightmare.",
+        effects: { wellbeing: +8 }, nextId: "workplace_issue" },
+      { label: "Post the stub to TikTok.",
+        kind: "bad", feedback: "Full name, SSN last 4, employer. Identity thieves love first-paycheck posts.",
+        effects: { wellbeing: -3, law: +3 }, nextId: "workplace_issue" }
+    ]
+  },
+  workplace_issue: {
+    title: "Four months in · a problem",
+    text: () => `New manager Brett. Increasingly inappropriate comments. A remark about your girlfriend in front of 2 coworkers. You have worse texts.`,
+    choices: [
+      { label: "Document in writing. Report to HR, cc personal email.",
+        kind: "good", feedback: "HR protects the company, not you. Written reports create legal record. Retaliation = illegal.",
+        effects: { wellbeing: +10, addFlags: ["documented_harassment"] }, nextId: "noncompete_test" },
+      { label: "Confront Brett privately.",
+        kind: "mid", feedback: "Sometimes works. Often tips him off to cover tracks.",
+        effects: { wellbeing: -5 }, nextId: "noncompete_test" },
+      { label: "Free consultation with employment lawyer first.",
+        kind: "good", feedback: "Most offer free intake. They tell you exactly what to document.",
+        effects: { wellbeing: +8, addFlags: ["documented_harassment"] }, nextId: "noncompete_test" },
+      { label: "Quit. Walk away.",
+        kind: "bad", feedback: "You lose income, benefits, AND the claim. Disqualifies unemployment.",
+        effects: { money: -5000, wellbeing: -15 }, nextId: "ending_mid" },
+      { label: "Sign HR's NDA/severance 'to make this go away.'",
+        kind: "bad", feedback: "Never sign a release without a lawyer. Often waives claims you didn't know you had.",
+        effects: { money: +3000, wellbeing: -10, addFlags: ["signed_nda"] }, nextId: "noncompete_test" }
+    ]
+  },
+  noncompete_test: {
+    title: "Fourteen months in · a better offer",
+    text: () => `Vantage Data offers $82k. Better work, better team. But the non-compete.`,
+    choices: [
+      { label: "Employment lawyer. Written opinion on enforceability before accepting.",
+        kind: "good", feedback: "Non-competes are unenforceable for most workers in CA, ND, OK, MN, and increasingly elsewhere (FTC rule).",
+        effects: { money: -500, wellbeing: +10, rmFlags: ["noncompete"] }, nextId: "leaving" },
+      { label: "Take the job. Hope nobody notices.",
+        kind: "bad", feedback: "Beacon sends cease-and-desist. Vantage rescinds. They sue you.",
+        effects: { money: -10000, wellbeing: -20, law: +30, addFlags: ["sued"] }, nextId: "leaving" },
+      { label: "Negotiate with Beacon: 6 more months for non-compete release.",
+        kind: "good", feedback: "Works more often than people think.",
+        effects: { wellbeing: +8, rmFlags: ["noncompete"] }, nextId: "leaving" },
+      { label: "Decline. Stay put.",
+        kind: "mid", feedback: "Leaving $16k/year over a clause that probably isn't enforceable is expensive caution.",
+        effects: { wellbeing: -2 }, nextId: "leaving" }
+    ]
+  },
+  leaving: {
+    title: "Resignation day",
+    text: () => `Two weeks notice. Lindsay hands an exit packet: 'mutual release of claims' to sign for PTO payout and final paycheck.`,
+    choices: [
+      { label: "Refuse to sign. Accrued PTO is legally yours.",
+        kind: "good", feedback: "In most states, employers can't withhold earned wages behind a release.",
+        effects: { money: +3000, wellbeing: +8 }, nextId: "finale" },
+      { label: "Sign. Whatever.",
+        kind: "bad", feedback: "You waived the harassment claim. Might've been owed unpaid overtime too.",
+        effects: { money: +3000, wellbeing: -10, addFlags: ["signed_release"] }, nextId: "finale" },
+      { label: "Take to a lawyer first.",
+        kind: "good", feedback: "Two clauses recommended for striking. Lindsay agrees. Narrower version signed.",
+        effects: { money: +2700, wellbeing: +6 }, nextId: "finale" },
+      { label: "Negotiate severance — leverage the harassment docs.",
+        kind: "good", feedback: "If documented, Beacon often pays 1-3 months to end things cleanly.",
+        effects: { money: () => state.flags.has("documented_harassment") ? +12000 : +2000, wellbeing: +10 }, nextId: "finale" }
+    ]
+  },
+
+  tax_surprise: {
+    title: "⚠ April",
+    text: () => `W-4 was wrong. You owe $6,400.`,
+    choices: [
+      { label: "IRS installment plan. File on time.",
+        kind: "good", feedback: "Filing on time avoids the 5%/mo failure-to-file penalty.",
+        effects: { money: -600, wellbeing: +2, law: -10, rmFlags: ["w4_wrong"] }, nextId: null },
+      { label: "Ignore it.",
+        kind: "bad", feedback: "Wages garnished within 18 months.",
+        effects: { wellbeing: -15, law: +25 }, nextId: null }
+    ]
+  },
+
+  ending_good: { ending: true, kind: "good", title: "✓ YOU NEGOTIATED",
+    text: () => `${state.char.name}, 26. New job, higher salary, no non-compete. A folder labeled "in case of HR" you'll never need.\n\nEvery document is negotiable until it's signed.` },
+  ending_mid: { ending: true, kind: "mid", title: "∼ SURVIVED",
+    text: () => `${state.char.name}, 26. Kept your head down. You're fine. You wonder sometimes if you left money on the table.\n\n(You did.)` },
+  ending_bad: { ending: true, kind: "bad", title: "✗ SUED BY YOUR EMPLOYER",
+    text: () => `${state.char.name}, 26. Defending a lawsuit. Legal fees past $40k. Job offer rescinded.\n\nThe non-compete probably wouldn't have held up — but you never asked.` },
+  ending_jail: sharedEndings.ending_jail,
+  ending_fugitive: sharedEndings.ending_fugitive,
+  ending_hospital: sharedEndings.ending_hospital,
+  ending_breakdown: sharedEndings.ending_breakdown,
+
+  finale: {
+    title: "Two years later",
+    text: () => `Let's see how it shook out.`,
+    choices: [
+      { label: "Continue...", kind: "mid", feedback: "", effects: {},
+        next: s => {
+          if (s.flags.has("sued")) return "ending_bad";
+          if (s.stats.wellbeing >= 70 && !s.flags.has("signed_blind") && !s.flags.has("signed_release")) return "ending_good";
+          return "ending_mid";
+        }
+      }
+    ]
+  }
+};
+
+// ============================================================
+// SCENARIO REGISTRY
+// ============================================================
+const scenarios = {
+  taxes: {
+    id: "taxes", name: "Tax Season",
+    who: "Joe Walker · 19 · Walmart cashier",
+    desc: "Almost April 15. A W-2, some cash gigs, and a choice about whether to tell the truth. Opens into insurance, a traffic stop, jury duty, credit, and a promotion.",
+    startMoney: 1560, scenes: taxScenes, startId: "intro",
+    defaultName: "Joe Walker",
+  },
+  lease: {
+    id: "lease", name: "The Lease",
+    who: "Maya Chen · 22 · first apartment",
+    desc: "Nine days to find housing in a new city. A scammer, a real lease, bad utilities, a roommate crisis, mold, and a deposit fight.",
+    startMoney: 3200, scenes: leaseScenes, startId: "intro",
+    defaultName: "Maya Chen",
+  },
+  job: {
+    id: "job", name: "The Offer",
+    who: "Dmitri Park · 24 · first salaried job",
+    desc: "A 31-page offer letter. Negotiation, W-4s, benefits, a workplace issue, a non-compete put to the test, and the resignation packet.",
+    startMoney: 800, scenes: jobScenes, startId: "intro",
+    defaultName: "Dmitri Park",
+  },
+};
+
+// ============================================================
+// EDUCATIONAL CONTENT — ending analysis + key takeaways
+// ============================================================
+const educationalContent = {
+  taxes: {
+    lessons: [
+      { t: "File on time, even if you can't pay", d: "The failure-to-FILE penalty is 5%/month (up to 25%). The failure-to-PAY penalty is 0.5%/month. Filing late is ten times worse than paying late. File first, then figure out payment." },
+      { t: "Cash income still counts", d: "Side gigs, Venmo tips, tutoring — if it's over $400, it's reportable. The IRS has automated matching for W-2s and 1099s. Cash flies under the radar until an audit surfaces everything." },
+      { t: "Stay on a parent's insurance until 26", d: "The ACA lets you stay on a parent's employer plan until age 26. At low income you usually also qualify for Medicaid. 'Health sharing ministries' advertised online aren't insurance — not regulated, deny claims routinely." },
+      { t: "Your W-4 is not set-and-forget", d: "Claiming 'exempt' when you aren't = owing thousands in April plus penalties. For most single young adults with one job: single, no dependents, no adjustments is the right default." },
+      { t: "Build credit before you need it", d: "A secured card ($200 deposit, reports to all 3 bureaus) plus paying in full every month is the fastest legit way to a 700+ score. Authorized-user status on a parent's old card also works." },
+      { t: "Never skip a 401(k) match", d: "Employer match is a 100% instant return. On a $42k salary with a 4% match, that's $1,680/year of free compounding. Starting at 19 vs 30 is worth roughly $300k by retirement." },
+      { t: "Federal agents: lawyer first, talk later", d: "Lying to an IRS or FBI agent is a separate felony (18 USC 1001). Voluntary disclosure reduces penalties massively. Fleeing escalates every problem. Always invoke counsel." },
+      { t: "Money mule schemes end in charges", d: "If anyone asks you to 'deposit checks' for a cut, it's wire fraud and money laundering. 'Just once' is enough to be charged. Report to your bank's fraud line." },
+    ],
+    analyze(s) {
+      const r = [];
+      // Tax filing
+      if (s.flags.has('filed_honestly')) r.push({kind:'good', text:'You filed an honest return including your cash income. This is the single biggest risk-reducer in the whole scenario.'});
+      else if (s.flags.has('underreported')) r.push({kind:'mid', text:'You filed a W-2-only return. Usually ignored, but technically evasion on the cash income — the IRS has matching on paper, not on cash, so this held.'});
+      else if (s.flags.has('didnt_file')) r.push({kind:'bad', text:'You never filed. Failure-to-file penalties (5%/mo) are ten times worse than failure-to-pay. Even a return owing nothing keeps you safe.'});
+      if (s.flags.has('tax_fraud')) r.push({kind:'bad', text:'The fake-dependents return is federal tax fraud. The IRS has automated EITC matching; this type of fraud is found at ~98% rate.'});
+
+      // Insurance
+      if (s.flags.has('insured')) r.push({kind:'good', text:"You got real health insurance — parental plan or marketplace. One ER visit uninsured would've wiped out a year's savings."});
+      else if (s.flags.has('fake_insurance')) r.push({kind:'bad', text:'"MediSave Plus" is a health-sharing ministry, not insurance. Not regulated. Denies claims. $40/mo for nothing.'});
+      else if (s.flags.has('uninsured')) r.push({kind:'mid', text:'You skipped insurance. Statistically you might be fine; one emergency and you owe $15k+.'});
+
+      // Driving
+      if (s.flags.has('no_insurance_car')) r.push({kind:'bad', text:'Driving uninsured is a misdemeanor in most states. Unregistered on top = inevitable tow + tickets.'});
+      else if (s.flags.has('insured_car')) r.push({kind:'good', text:'Liability insurance is legally required in 48 states. You did the minimum right.'});
+
+      // Law enforcement interactions
+      if (s.flags.has('evaded_police')) r.push({kind:'bad', text:'Fleeing a traffic stop = felony evading. This upgrades every other problem you have.'});
+      if (s.flags.has('missed_jury')) r.push({kind:'bad', text:'Failing to appear for jury duty = bench warrant in most jurisdictions. A court appearance you could have postponed online.'});
+      if (s.flags.has('money_mule')) r.push({kind:'bad', text:"You never fully cleared the mule flag. Even one deposit is enough for federal wire-fraud charges."});
+      if (s.flags.has('felony_record')) r.push({kind:'bad', text:'A felony record follows every future job application, lease, and loan. The cheaper move was always to refuse in the first place.'});
+      if (s.flags.has('fugitive')) r.push({kind:'bad', text:'Fleeing made the IRS problem a federal fugitive problem. Borders have cameras. This was never going to work.'});
+
+      // Credit
+      if (s.flags.has('building_credit')) r.push({kind:'good', text:'You started building credit at 19. By 24 you have a real score — meaning access to car loans, apartments, and lower rates for life.'});
+      else if (s.flags.has('credit_card_debt')) r.push({kind:'bad', text:'Maxing a 29.99% APR card means years of interest. Minimum payments barely cover it.'});
+
+      // Retirement
+      if (s.flags.has('retirement_started')) r.push({kind:'good', text:'You took the 401(k) match. That choice is worth ~$300k by retirement versus starting at 30.'});
+
+      // Law meter
+      if (s.law >= 50) r.push({kind:'bad', text:`Final Law heat: ${Math.round(s.law)}%. Multiple risky choices stacked into active enforcement risk.`});
+      else if (s.law <= 15) r.push({kind:'good', text:'Law heat stayed low — you kept every interaction clean and cooperative.'});
+
+      // Stats
+      if (s.stats.wellbeing < 30) r.push({kind:'mid', text:'Your wellbeing tanked. Burnout makes every other decision harder and usually cascades.'});
+      if (s.stats.health < 30) r.push({kind:'mid', text:'Physical health took a hit — usually from DIY medical choices or skipped care.'});
+      return r;
+    }
+  },
+
+  lease: {
+    lessons: [
+      { t: "Never pay before a showing", d: "Real landlords accept application fees AFTER you tour — usually by check or card, not Zelle to a personal account. If they refuse an in-person showing or pressure you with 'other interest,' it's a scam. Reverse-image search the photos." },
+      { t: "Read every clause — and take the lease home", d: "A legitimate landlord will let you take the lease home overnight. Mandatory renter's insurance ($15/mo) is normal. 'Tenant pays landlord's legal fees' and 'waive right to jury trial' are predatory. Cross out what you won't accept and initial." },
+      { t: "Security deposits are capped by law", d: "Most states cap deposits at 1–2 months' rent. Requiring 'first, last, and two months' is illegal in most places. Know your state's rule before you sign." },
+      { t: "Document everything in writing", d: "Certified mail, emails, text messages, photos with timestamps — this is how you win disputes. Verbal complaints to a landlord are worth nothing in court." },
+      { t: "Warranty of habitability is a real right", d: "Mold, no heat, no water, pest infestations — landlords must fix within reasonable time. Withholding rent requires escrow in most states; just not paying = eviction grounds. Code enforcement is free and fast." },
+      { t: "Fight for your deposit", d: "Most states require itemized receipts within 14–30 days and award double or triple damages for bogus deductions. Small claims court is designed for exactly this — $75 filing fee, no lawyer needed." },
+      { t: "Watch for utility-reseller scams", d: "'Energy Savers' and 'Fixed Rate Forever' companies promote low teaser rates that balloon. PUC complaints are free and often force refunds. Use the default utility company." },
+      { t: "Unauthorized occupants = eviction risk", d: "Most leases cap guests at 14 days. Adding a roommate always means a written notice to the landlord. Illegal subletting for cash makes you BOTH evictable and a tax evader." },
+    ],
+    analyze(s) {
+      const r = [];
+      if (s.flags.has('scammed')) r.push({kind:'bad', text:'You paid Greg before seeing the apartment. Every rental scam uses the same pattern: urgency + up-front payment + refusal to show.'});
+      else r.push({kind:'good', text:"You didn't pay before the showing. That one instinct shuts down 95% of rental scams."});
+
+      if (s.flags.has('read_lease')) r.push({kind:'good', text:'You read the lease. This single behavior saves young renters the most money of any habit in the scenario.'});
+      else if (s.flags.has('bad_lease')) r.push({kind:'bad', text:'You signed without reading. The clauses you agreed to (amenity fees, auto-escalators, legal-fees clause) cost you every month.'});
+
+      if (s.flags.has('documented_repair')) r.push({kind:'good', text:'You documented the mold in writing. Warranty-of-habitability cases are decided on paper trails.'});
+      if (s.flags.has('lease_violation') || s.flags.has('illegal_sublease')) r.push({kind:'bad', text:"You violated your lease. Even 'just a month' of unauthorized occupancy is eviction grounds."});
+      if (s.flags.has('withheld_rent')) r.push({kind:'bad', text:'You withheld rent without setting up a court-supervised escrow account — most states treat this as non-payment.'});
+
+      if (s.flags.has('got_deposit')) r.push({kind:'good', text:'You fought for your deposit. Most renters eat this loss; you took 30 minutes to send a demand letter and won.'});
+      if (s.flags.has('eviction_record')) r.push({kind:'bad', text:"An eviction on record means no rental approval for 7 years. Legal aid clinics could've stopped it — they're free."});
+
+      if (s.flags.has('utility_scam')) r.push({kind:'bad', text:'The Energy Savers contract kept charging termination fees. Retail electricity resellers have hundreds of thousands of PUC complaints.'});
+
+      if (s.stats.wellbeing >= 70) r.push({kind:'good', text:'High wellbeing at the end — housing stress is the #1 predictor of young-adult burnout. You managed it.'});
+      if (s.stats.wellbeing < 30) r.push({kind:'mid', text:"Your wellbeing tanked. Housing instability compounds everything else."});
+      return r;
+    }
+  },
+
+  job: {
+    lessons: [
+      { t: "Everything is negotiable before you sign", d: "Roughly 60% of first offers have room. The worst answer is 'our best is $X.' Most common outcome: meet in the middle. After you sign, your leverage vanishes. Always ask for time to review." },
+      { t: "Total comp > base salary", d: "A $62k base with a 6% 401(k) match, HSA-eligible plan, and 3 weeks PTO can out-earn a $68k base with none. Always ask for the full comp breakdown before comparing offers." },
+      { t: "Read non-competes carefully", d: "Non-competes are unenforceable for most workers in California, North Dakota, Oklahoma, Minnesota, and — via a 2024 FTC rule — increasingly elsewhere. Even where valid, most are overbroad. Get a written legal opinion before accepting a competitor offer." },
+      { t: "Arbitration clauses and NDAs aren't always final", d: "Some employers will carve out wage/hour claims. Some add 30-day opt-out windows (often buried). Ask. And never sign a release or NDA at exit without a lawyer — they frequently waive claims you didn't know you had." },
+      { t: "HR protects the company, not you", d: "Workplace harassment: document EVERYTHING in writing, always cc your personal email, and call an employment lawyer for a free intake. Retaliation against good-faith complaints is illegal — but you need a paper trail to prove it." },
+      { t: "Optimize your W-4 on day one", d: "For most single workers: single, no dependents, no adjustments. Claiming fake dependents for a bigger paycheck = owing thousands in April plus underpayment penalties." },
+      { t: "HSAs are the best tax-advantaged account", d: "Triple tax benefit: pre-tax in, tax-free growth, tax-free out for medical. Better than a 401(k) dollar-for-dollar. Only available if you're on a High Deductible Health Plan." },
+      { t: "Audit every paycheck", d: "Payroll errors happen constantly. Check each line item against what you authorized. Unauthorized deductions violate the Fair Labor Standards Act. Wrong-state withholding is a common, expensive mistake." },
+      { t: "Verbal offers aren't offers", d: "Until it's in writing, it didn't happen. Never terminate a current job or decline other offers based on a phone call." },
+    ],
+    analyze(s) {
+      const r = [];
+      if (s.flags.has('signed_blind')) r.push({kind:'bad', text:'You signed a 31-page offer without reading. Non-compete, arbitration, and wage-discussion clauses are now binding.'});
+      else if (s.flags.has('negotiated')) r.push({kind:'good', text:'You negotiated before signing. $4,500+ in increased comp for one uncomfortable conversation — the best hourly rate of your career.'});
+
+      if (s.flags.has('benefits_optimized')) r.push({kind:'good', text:"You optimized your benefits: 401(k) match + HSA + reasonable withholding. That's thousands per year in free value plus $300k+ compounded by retirement."});
+      if (s.flags.has('w4_wrong')) r.push({kind:'bad', text:'Claiming too many dependents on the W-4 = underpayment penalties. A 60-second fix costs years to undo.'});
+
+      if (s.flags.has('documented_harassment')) r.push({kind:'good', text:'You documented the harassment in writing and kept personal-email copies. That paper trail is what gave you leverage at exit.'});
+      if (s.flags.has('signed_nda')) r.push({kind:'bad', text:'You signed the HR release without a lawyer. You likely waived claims worth 10× what they paid you.'});
+      if (s.flags.has('signed_release')) r.push({kind:'bad', text:'Exit-day release signed without review. PTO and final wages are legally yours without signing anything.'});
+
+      if (s.flags.has('noncompete') && !s.flags.has('sued')) r.push({kind:'mid', text:"You left with the non-compete still in force. It probably wouldn't survive court challenge, but the chilling effect is real."});
+      if (s.flags.has('sued')) r.push({kind:'bad', text:"You took the competitor job without checking enforceability. Beacon's cease-and-desist killed the new offer."});
+
+      if (s.stats.money >= 10000) r.push({kind:'good', text:`You ended with $${Math.round(s.stats.money).toLocaleString()} — negotiation, severance, and smart benefits compound quickly.`});
+      if (s.stats.wellbeing < 40) r.push({kind:'mid', text:'Wellbeing took a hit. The harassment and pressure were real. No amount of money fully offsets that.'});
+      return r;
+    }
+  }
+};
+
+// ============================================================
+// LEVEL DESIGN TAB
+// ============================================================
+let editingLevel = null;
+
+function renderLevelDesignLanding() {
+  const levels = loadCustomLevels();
+  const levelCards = levels.length ? levels.map(l => `
+    <div class="ed-card">
+      <h3>${escapeHtml(l.name)}</h3>
+      <div class="meta">${escapeHtml(l.who || "")} · ${(l.scenes || []).length} scenes · ${(l.lessons || []).length} lessons</div>
+      <div style="font-size: 14px; color: var(--text); margin-bottom: 4px;">${escapeHtml(l.desc || "")}</div>
+      <div class="row">
+        <button class="ed-btn" onclick="startCustomLevel('${l.id}', false)">▶ Play</button>
+        <button class="ed-btn" onclick="startCustomLevel('${l.id}', true)">▶ Play with custom character</button>
+        <button class="ed-btn ghost" onclick="openLevelEditor('${l.id}')">✎ Edit</button>
+        <button class="ed-btn ghost" onclick="exportOneLevel('${l.id}')">⬇ Export JSON</button>
+        <button class="ed-btn danger" onclick="confirmDeleteLevel('${l.id}')">🗑 Delete</button>
+      </div>
+    </div>
+  `).join("") : `
+    <div class="ed-card">
+      <div class="meta">You haven't made any levels yet. Start with a blank template or clone a campaign to see how they're built.</div>
+    </div>
+  `;
+
+  return `
+    <div class="scene" style="background: transparent; box-shadow: none; border: none; padding: 0 4px 12px;">
+      <div class="title">Level Design</div>
+      Build your own scenarios. The editor uses the same engine as the campaigns — modifiers from Freeplay characters work on your levels too.
+    </div>
+    <div class="ed-toolbar">
+      <button class="ed-btn" onclick="createBlankLevel()">+ New Level</button>
+      <button class="ed-btn ghost" onclick="openImportModal()">⬇ Import JSON</button>
+      <button class="ed-btn ghost" onclick="cloneCampaignPicker()">Clone a Campaign</button>
+    </div>
+    <div class="ed-section">
+      <div class="ed-section-head"><h3>Your Levels (${levels.length})</h3></div>
+      ${levelCards}
+    </div>
+    <div class="ed-hint">
+      <b>Tip:</b> Clone a Campaign to see exactly how the built-in scenarios are structured. Every campaign is authored with the same schema you use in the editor.
+    </div>
+  `;
+}
+
+function createBlankLevel() {
+  const lvl = blankLevel();
+  upsertCustomLevel(lvl);
+  openLevelEditor(lvl.id);
+}
+
+function confirmDeleteLevel(id) {
+  if (!confirm("Delete this level? This cannot be undone.")) return;
+  deleteCustomLevel(id);
+  renderMenu();
+}
+
+function openImportModal() {
+  const modal = document.getElementById("modal-content");
+  modal.innerHTML = `
+    <h2>Import Level JSON</h2>
+    <div class="ed-field">
+      <label>Paste JSON below</label>
+      <textarea class="json" id="import-json" placeholder='{"id": "...", "name": "...", "scenes": [...]}'></textarea>
+    </div>
+    <div class="row" style="display:flex; gap:8px; margin-top:14px;">
+      <button class="ed-btn" onclick="doImport()">Import</button>
+      <button class="ed-btn ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+  document.getElementById("modal-bg").classList.add("open");
+}
+
+function doImport() {
+  const txt = document.getElementById("import-json").value;
+  try {
+    const obj = JSON.parse(txt);
+    if (!obj.id) obj.id = newLevelId();
+    if (!obj.scenes || !obj.startSceneId) throw new Error("missing scenes or startSceneId");
+    upsertCustomLevel(obj);
+    closeModal();
+    renderMenu();
+  } catch (e) {
+    alert("Import failed: " + e.message);
+  }
+}
+
+function exportOneLevel(id) {
+  const lvl = loadCustomLevels().find(l => l.id === id);
+  if (!lvl) return;
+  const modal = document.getElementById("modal-content");
+  modal.innerHTML = `
+    <h2>Export: ${escapeHtml(lvl.name)}</h2>
+    <div class="ed-field">
+      <label>Copy this JSON to share or back up</label>
+      <textarea class="json" readonly onclick="this.select()">${escapeHtml(JSON.stringify(lvl, null, 2))}</textarea>
+    </div>
+    <button class="ed-btn ghost" onclick="closeModal()">Close</button>
+  `;
+  document.getElementById("modal-bg").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("modal-bg").classList.remove("open");
+}
+
+function cloneCampaignPicker() {
+  const modal = document.getElementById("modal-content");
+  modal.innerHTML = `
+    <h2>Clone a Campaign</h2>
+    <div class="meta" style="color: var(--muted); font-size: 14px; margin-bottom: 14px;">
+      Creates an editable copy in your levels list. Good for learning how scenes are structured.
+    </div>
+    ${Object.values(scenarios).map(sc => `
+      <div class="ed-card" style="margin-bottom: 10px;" onclick="cloneCampaign('${sc.id}')">
+        <h3 style="color: var(--accent); cursor: pointer;">${escapeHtml(sc.name)}</h3>
+        <div class="meta">${escapeHtml(sc.who)}</div>
+      </div>
+    `).join("")}
+    <button class="ed-btn ghost" onclick="closeModal()">Cancel</button>
+  `;
+  document.getElementById("modal-bg").classList.add("open");
+}
+
+function cloneCampaign(id) {
+  const scenario = scenarios[id];
+  if (!scenario) return;
+  const data = serializeCampaignToData(scenario);
+  data.id = newLevelId();
+  data.name = scenario.name + " (Clone)";
+  upsertCustomLevel(data);
+  closeModal();
+  renderMenu();
+}
+
+// Serializes a code-based campaign scenario into the declarative data format.
+// This proves the editor schema is expressive enough to recreate campaigns.
+function serializeCampaignToData(scenario) {
+  // Campaign scene text functions reference the global `state` variable.
+  // Swap in a dummy so we can render them without a live game session.
+  const prevState = state;
+  state = { char: { name: scenario.defaultName, modifiers: new Set() }, stats: { money: 0, health: 80, wellbeing: 70 }, law: 0, flags: new Set(), turn: 0 };
+  const scenesArr = [];
+
+  Object.entries(scenario.scenes).forEach(([id, sc]) => {
+    const scene = { id, title: sc.title };
+    try {
+      scene.text = typeof sc.text === "function" ? sc.text() : (sc.text || "");
+    } catch(e) {
+      scene.text = "(text failed to render)";
+    }
+    // Replace character name with {name} placeholder
+    if (scenario.defaultName) {
+      scene.text = scene.text.split(scenario.defaultName).join("{name}");
+    }
+    if (sc.ending) {
+      scene.ending = true;
+      scene.endingKind = sc.kind || "mid";
+    } else if (sc.choices) {
+      scene.choices = sc.choices.map(c => {
+        const label = typeof c.label === "function" ? c.label(dummyState) : c.label;
+        const effects = {};
+        if (c.effects) {
+          Object.entries(c.effects).forEach(([k, v]) => {
+            effects[k] = typeof v === "function" ? v() : v;
+          });
+        }
+        const choice = {
+          label,
+          kind: c.kind || "mid",
+          feedback: c.feedback || "",
+          effects,
+        };
+        if (c.next) {
+          // Represent with a default nextId since we can't introspect the function.
+          // The campaign's endingRules below handle real branching.
+          choice.nextId = "finale";
+        } else {
+          choice.nextId = c.nextId !== undefined ? c.nextId : null;
+        }
+        return choice;
+      });
+    }
+    scenesArr.push(scene);
+  });
+
+  // Attach hand-authored ending rules + lessons + analysis from educationalContent
+  const rules = CAMPAIGN_ENDING_RULES[scenario.id] || [{ default: true, to: "ending_mid" }];
+  const eduPack = CAMPAIGN_EDU_RULES[scenario.id] || { lessons: [], analysisRules: [] };
+
+  const result = {
+    id: scenario.id,
+    name: scenario.name,
+    who: scenario.who,
+    desc: scenario.desc,
+    startMoney: scenario.startMoney,
+    defaultName: scenario.defaultName,
+    startSceneId: scenario.startId,
+    scenes: scenesArr,
+    endingRules: rules,
+    lessons: eduPack.lessons,
+    analysisRules: eduPack.analysisRules,
+  };
+  state = prevState;
+  return result;
+}
+
+// Declarative ending rules mirroring what the code-based finale functions do.
+const CAMPAIGN_ENDING_RULES = {
+  taxes: [
+    { if: { hasFlag: "fugitive" }, to: "ending_fugitive" },
+    { if: { hasFlag: "felony_record" }, to: "ending_jail" },
+    { if: { lawGte: 70 }, to: "ending_bad" },
+    { if: { wellbeingGte: 70, notFlag: "tax_fraud" }, to: "ending_good" },
+    { default: true, to: "ending_mid" },
+  ],
+  lease: [
+    { if: { hasFlag: "eviction_record" }, to: "ending_bad" },
+    { if: { wellbeingGte: 65, hasFlag: "got_deposit" }, to: "ending_good" },
+    { default: true, to: "ending_mid" },
+  ],
+  job: [
+    { if: { hasFlag: "sued" }, to: "ending_bad" },
+    { if: { wellbeingGte: 70, notFlag: "signed_blind" }, to: "ending_good" },
+    { default: true, to: "ending_mid" },
+  ],
+};
+
+// Declarative analysis rules + lessons for each campaign (editor-format mirrors of the
+// code-based educationalContent objects so cloned levels ship with real guidance).
+const CAMPAIGN_EDU_RULES = {
+  taxes: {
+    lessons: educationalContent.taxes.lessons,
+    analysisRules: [
+      { when: { hasFlag: "filed_honestly" }, kind: "good", text: "You filed an honest return including your cash income. This is the single biggest risk-reducer in the whole scenario." },
+      { when: { hasFlag: "didnt_file" }, kind: "bad", text: "You never filed. Failure-to-file penalties (5%/mo) are ten times worse than failure-to-pay." },
+      { when: { hasFlag: "tax_fraud" }, kind: "bad", text: "Fake-dependents fraud is caught at ~98% rate by IRS automated matching." },
+      { when: { hasFlag: "insured" }, kind: "good", text: "You got real health insurance. One uninsured ER visit wipes out a year of savings." },
+      { when: { hasFlag: "fake_insurance" }, kind: "bad", text: "'MediSave Plus' is a health-sharing ministry, not insurance. Unregulated." },
+      { when: { hasFlag: "no_insurance_car" }, kind: "bad", text: "Driving uninsured is a misdemeanor in most states." },
+      { when: { hasFlag: "building_credit" }, kind: "good", text: "Building credit at 19 pays off for the next 40 years of loans and leases." },
+      { when: { hasFlag: "retirement_started" }, kind: "good", text: "Taking the 401(k) match is worth ~$300k by retirement vs starting at 30." },
+      { when: { hasFlag: "evaded_police" }, kind: "bad", text: "Fleeing a traffic stop upgrades every other problem you had." },
+      { when: { hasFlag: "money_mule" }, kind: "bad", text: "Mule schemes are federal wire fraud. One deposit is enough." },
+      { when: { hasFlag: "felony_record" }, kind: "bad", text: "A felony record follows every future application." },
+      { when: { hasFlag: "fugitive" }, kind: "bad", text: "Fleeing made it a federal fugitive problem. Never works." },
+      { when: { lawGte: 50 }, kind: "bad", text: "Law heat stacked up this run. Multiple risky choices compound into active enforcement risk." },
+      { when: { lawLte: 15 }, kind: "good", text: "Law heat stayed low — you kept every interaction clean and cooperative." },
+    ],
+  },
+  lease: {
+    lessons: educationalContent.lease.lessons,
+    analysisRules: [
+      { when: { notFlag: "scammed" }, kind: "good", text: "You didn't pay before the showing. That instinct shuts down 95% of rental scams." },
+      { when: { hasFlag: "scammed" }, kind: "bad", text: "You paid before seeing the apartment. Every rental scam uses urgency + upfront payment." },
+      { when: { hasFlag: "read_lease" }, kind: "good", text: "You read the lease. Saves young renters more money than any other habit." },
+      { when: { hasFlag: "bad_lease" }, kind: "bad", text: "You signed without reading. Hidden clauses cost you every month." },
+      { when: { hasFlag: "documented_repair" }, kind: "good", text: "You documented the mold in writing. Warranty-of-habitability cases are decided on paper trails." },
+      { when: { hasFlag: "got_deposit" }, kind: "good", text: "You fought for your deposit. Most renters eat this loss; you took 30 minutes and won." },
+      { when: { hasFlag: "eviction_record" }, kind: "bad", text: "An eviction on record means no rental approval for 7 years." },
+      { when: { hasFlag: "illegal_sublease" }, kind: "bad", text: "Illegal subletting makes you an evictor risk AND a tax evader." },
+    ],
+  },
+  job: {
+    lessons: educationalContent.job.lessons,
+    analysisRules: [
+      { when: { hasFlag: "signed_blind" }, kind: "bad", text: "You signed a 31-page offer without reading. Non-compete, arbitration, and confidentiality clauses are now binding." },
+      { when: { hasFlag: "negotiated" }, kind: "good", text: "You negotiated before signing. Thousands in comp for one uncomfortable conversation." },
+      { when: { hasFlag: "benefits_optimized" }, kind: "good", text: "Benefits optimized — 401(k) match + HSA + right withholding = thousands per year in free value." },
+      { when: { hasFlag: "documented_harassment" }, kind: "good", text: "You documented harassment in writing. That paper trail gave you leverage at exit." },
+      { when: { hasFlag: "signed_nda" }, kind: "bad", text: "You signed an HR release without a lawyer. Likely waived claims worth more than the payment." },
+      { when: { hasFlag: "sued" }, kind: "bad", text: "You took the competitor job without checking enforceability. Cease-and-desist killed the offer." },
+      { when: { hasFlag: "w4_wrong" }, kind: "bad", text: "Claiming too many dependents on the W-4 = underpayment penalties. 60-second fix costs years." },
+    ],
+  },
+};
+
+// ============================================================
+// LEVEL EDITOR
+// ============================================================
+function openLevelEditor(id) {
+  const lvl = loadCustomLevels().find(l => l.id === id);
+  if (!lvl) { alert("Level not found"); return; }
+  editingLevel = JSON.parse(JSON.stringify(lvl)); // deep clone for editing
+  renderLevelEditor();
+}
+
+function renderLevelEditor() {
+  document.getElementById("stats-wrap").style.display = "none";
+  document.getElementById("notebook-btn").style.display = "none";
+  document.getElementById("menu-btn").style.display = "inline-block";
+  document.getElementById("char-name").textContent = "";
+  const game = document.getElementById("game");
+  const lvl = editingLevel;
+
+  const scenesByKind = lvl.scenes.map(sc => {
+    const cls = sc.ending
+      ? "scene-pill ending" + (sc.endingKind === "bad" ? " ending-bad" : sc.endingKind === "mid" ? " ending-mid" : "")
+      : "scene-pill";
+    const label = sc.ending ? `🏁 ${escapeHtml(sc.title)} (${sc.endingKind || "mid"})` : escapeHtml(sc.title);
+    const badge = sc.id === lvl.startSceneId ? `<span style="background: var(--accent-soft); color: var(--accent); padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 700;">START</span>` : "";
+    return `
+      <div class="${cls}">
+        <span class="id-tag">#${escapeHtml(sc.id)}</span>
+        <span class="flex">${label}</span>
+        ${badge}
+        <button class="ed-btn ghost" onclick="editScene('${sc.id}')">Edit</button>
+        ${sc.id !== lvl.startSceneId ? `<button class="ed-btn danger" onclick="deleteScene('${sc.id}')">×</button>` : ""}
+      </div>
+    `;
+  }).join("");
+
+  const rulesHtml = (lvl.endingRules || []).map((r, i) => `
+    <div class="rule-row">
+      <div style="font-size: 13px;">
+        ${r.default ? "<b>Default</b>" : `<b>If</b> ${escapeHtml(describeCondition(r.if || {}))}`}
+        → <b>${escapeHtml(r.to)}</b>
+      </div>
+      <button class="ed-btn ghost" onclick="removeEndingRule(${i})">×</button>
+    </div>
+  `).join("");
+
+  const lessonsHtml = (lvl.lessons || []).map((l, i) => `
+    <div class="choice-editor">
+      <div class="ed-field"><label>Title</label><input value="${escapeHtml(l.t)}" oninput="updateLesson(${i}, 't', this.value)"/></div>
+      <div class="ed-field"><label>Detail</label><textarea oninput="updateLesson(${i}, 'd', this.value)">${escapeHtml(l.d)}</textarea></div>
+      <button class="ed-btn danger" onclick="removeLesson(${i})">Remove</button>
+    </div>
+  `).join("");
+
+  const analysisHtml = (lvl.analysisRules || []).map((r, i) => `
+    <div class="choice-editor">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+        <select onchange="updateAnalysisRule(${i}, 'kind', this.value)">
+          <option value="good" ${r.kind === "good" ? "selected" : ""}>Good</option>
+          <option value="bad" ${r.kind === "bad" ? "selected" : ""}>Bad</option>
+          <option value="mid" ${r.kind === "mid" ? "selected" : ""}>Mid</option>
+        </select>
+        <input placeholder="flag name (hasFlag)" value="${escapeHtml(r.when?.hasFlag || "")}" oninput="updateAnalysisWhen(${i}, 'hasFlag', this.value)" style="flex: 1; min-width: 150px;"/>
+      </div>
+      <textarea placeholder="Explanation shown on ending screen" oninput="updateAnalysisRule(${i}, 'text', this.value)">${escapeHtml(r.text || "")}</textarea>
+      <button class="ed-btn danger" style="margin-top: 8px;" onclick="removeAnalysisRule(${i})">Remove</button>
+    </div>
+  `).join("");
+
+  game.innerHTML = `
+    <div class="ed-toolbar">
+      <button class="ed-btn" onclick="saveEditor()">💾 Save</button>
+      <button class="ed-btn ghost" onclick="playEditingLevel(false)">▶ Playtest</button>
+      <button class="ed-btn ghost" onclick="playEditingLevel(true)">▶ Playtest with character</button>
+      <button class="ed-btn ghost" onclick="returnToMenu()">← Back</button>
+    </div>
+
+    <div class="ed-section">
+      <div class="ed-section-head"><h3>Level Metadata</h3></div>
+      <div class="ed-card">
+        <div class="ed-field"><label>Name</label><input value="${escapeHtml(lvl.name)}" oninput="editingLevel.name = this.value"/></div>
+        <div class="ed-field"><label>Character / subtitle</label><input value="${escapeHtml(lvl.who || "")}" oninput="editingLevel.who = this.value"/></div>
+        <div class="ed-field"><label>One-line description</label><textarea oninput="editingLevel.desc = this.value">${escapeHtml(lvl.desc || "")}</textarea></div>
+        <div class="ed-inline">
+          <div class="ed-field"><label>Default name</label><input value="${escapeHtml(lvl.defaultName || "")}" oninput="editingLevel.defaultName = this.value"/></div>
+          <div class="ed-field"><label>Starting money ($)</label><input type="number" value="${lvl.startMoney || 0}" oninput="editingLevel.startMoney = parseInt(this.value) || 0"/></div>
+          <div class="ed-field"><label>Start scene ID</label><select onchange="editingLevel.startSceneId = this.value">
+            ${lvl.scenes.filter(s => !s.ending).map(s => `<option value="${escapeHtml(s.id)}" ${s.id === lvl.startSceneId ? "selected" : ""}>${escapeHtml(s.id)} — ${escapeHtml(s.title)}</option>`).join("")}
+          </select></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ed-section">
+      <div class="ed-section-head">
+        <h3>Scenes (${lvl.scenes.length})</h3>
+        <div style="display: flex; gap: 8px;">
+          <button class="ed-btn" onclick="addScene(false)">+ Scene</button>
+          <button class="ed-btn ghost" onclick="addScene(true)">+ Ending</button>
+        </div>
+      </div>
+      ${scenesByKind}
+    </div>
+
+    <div class="ed-section">
+      <div class="ed-section-head">
+        <h3>Ending Rules (first match wins)</h3>
+        <button class="ed-btn" onclick="addEndingRule()">+ Rule</button>
+      </div>
+      <div class="ed-hint">
+        When a player hits the finale scene, these rules run top-to-bottom. First match sends them to the matching ending.
+      </div>
+      ${rulesHtml}
+    </div>
+
+    <div class="ed-section">
+      <div class="ed-section-head">
+        <h3>Key Takeaways (always shown on ending screen)</h3>
+        <button class="ed-btn" onclick="addLesson()">+ Lesson</button>
+      </div>
+      ${lessonsHtml}
+    </div>
+
+    <div class="ed-section">
+      <div class="ed-section-head">
+        <h3>Analysis (shown if flag matches)</h3>
+        <button class="ed-btn" onclick="addAnalysisRule()">+ Reason</button>
+      </div>
+      <div class="ed-hint">
+        After each run, the ending screen explains WHY the player got that outcome. Each rule fires if the player picked up the matching flag during play.
+      </div>
+      ${analysisHtml}
+    </div>
+  `;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function describeCondition(c) {
+  const parts = [];
+  if (c.hasFlag) parts.push(`flag "${c.hasFlag}" set`);
+  if (c.notFlag) parts.push(`flag "${c.notFlag}" NOT set`);
+  if (c.lawGte != null) parts.push(`law ≥ ${c.lawGte}`);
+  if (c.lawLte != null) parts.push(`law ≤ ${c.lawLte}`);
+  if (c.wellbeingGte != null) parts.push(`wellbeing ≥ ${c.wellbeingGte}`);
+  if (c.healthGte != null) parts.push(`health ≥ ${c.healthGte}`);
+  if (c.moneyGte != null) parts.push(`money ≥ ${c.moneyGte}`);
+  return parts.length ? parts.join(" AND ") : "(empty)";
+}
+
+function saveEditor() {
+  if (!editingLevel) return;
+  upsertCustomLevel(editingLevel);
+  alert("Saved.");
+}
+
+function addScene(asEnding) {
+  const id = asEnding ? "end_" + newSceneId() : newSceneId();
+  if (asEnding) {
+    editingLevel.scenes.push({ id, title: "New Ending", text: "{name}. End of the line.", ending: true, endingKind: "mid" });
+  } else {
+    editingLevel.scenes.push({ id, title: "New Scene", text: "Describe what's happening...", choices: [] });
+  }
+  renderLevelEditor();
+}
+
+function deleteScene(id) {
+  if (!confirm("Delete scene " + id + "?")) return;
+  editingLevel.scenes = editingLevel.scenes.filter(s => s.id !== id);
+  renderLevelEditor();
+}
+
+function addLesson() {
+  editingLevel.lessons = editingLevel.lessons || [];
+  editingLevel.lessons.push({ t: "New takeaway", d: "Explain the real-world lesson here." });
+  renderLevelEditor();
+}
+function updateLesson(i, k, v) { editingLevel.lessons[i][k] = v; }
+function removeLesson(i) { editingLevel.lessons.splice(i, 1); renderLevelEditor(); }
+
+function addAnalysisRule() {
+  editingLevel.analysisRules = editingLevel.analysisRules || [];
+  editingLevel.analysisRules.push({ when: { hasFlag: "" }, kind: "mid", text: "Reason shown when flag is set." });
+  renderLevelEditor();
+}
+function updateAnalysisRule(i, k, v) { editingLevel.analysisRules[i][k] = v; }
+function updateAnalysisWhen(i, k, v) {
+  editingLevel.analysisRules[i].when = editingLevel.analysisRules[i].when || {};
+  editingLevel.analysisRules[i].when[k] = v;
+}
+function removeAnalysisRule(i) { editingLevel.analysisRules.splice(i, 1); renderLevelEditor(); }
+
+function addEndingRule() {
+  editingLevel.endingRules = editingLevel.endingRules || [];
+  const endings = editingLevel.scenes.filter(s => s.ending);
+  const to = endings[0]?.id || "ending_mid";
+  editingLevel.endingRules.push({ if: { hasFlag: "" }, to });
+  renderLevelEditor();
+}
+function removeEndingRule(i) { editingLevel.endingRules.splice(i, 1); renderLevelEditor(); }
+
+// ============================================================
+// SCENE EDITOR (opens in modal)
+// ============================================================
+function editScene(id) {
+  const sc = editingLevel.scenes.find(s => s.id === id);
+  if (!sc) return;
+  renderSceneEditor(sc);
+}
+
+function renderSceneEditor(sc) {
+  const modal = document.getElementById("modal-content");
+  const allSceneIds = editingLevel.scenes.map(s => s.id);
+  const endingScenes = editingLevel.scenes.filter(s => s.ending);
+
+  const choicesHtml = (sc.choices || []).map((c, i) => `
+    <div class="choice-editor">
+      <div class="choice-head">
+        <b style="color: var(--accent);">Choice ${i + 1}</b>
+        <button class="ed-btn danger" onclick="removeChoice('${sc.id}', ${i})">Remove</button>
+      </div>
+      <div class="ed-field"><label>Label (what the button says)</label><textarea oninput="updateChoice('${sc.id}', ${i}, 'label', this.value)">${escapeHtml(c.label || "")}</textarea></div>
+      <div class="ed-field">
+        <label>Kind</label>
+        <div class="ed-kind-row">
+          <input type="radio" id="k${sc.id}${i}g" name="k${sc.id}${i}" ${c.kind === "good" ? "checked" : ""} onchange="updateChoice('${sc.id}', ${i}, 'kind', 'good')"/>
+          <label for="k${sc.id}${i}g" class="ed-kind-good">Good</label>
+          <input type="radio" id="k${sc.id}${i}m" name="k${sc.id}${i}" ${c.kind === "mid" || !c.kind ? "checked" : ""} onchange="updateChoice('${sc.id}', ${i}, 'kind', 'mid')"/>
+          <label for="k${sc.id}${i}m" class="ed-kind-mid">Mid</label>
+          <input type="radio" id="k${sc.id}${i}b" name="k${sc.id}${i}" ${c.kind === "bad" ? "checked" : ""} onchange="updateChoice('${sc.id}', ${i}, 'kind', 'bad')"/>
+          <label for="k${sc.id}${i}b" class="ed-kind-bad">Bad</label>
+        </div>
+      </div>
+      <div class="ed-field"><label>Feedback (shown after choosing)</label><textarea oninput="updateChoice('${sc.id}', ${i}, 'feedback', this.value)">${escapeHtml(c.feedback || "")}</textarea></div>
+      <div class="ed-section-head" style="margin: 8px 0 6px;"><h3 style="font-size: 11px;">Effects on stats</h3></div>
+      <div class="ed-inline">
+        <div class="ed-field"><label>Money</label><input type="number" value="${(c.effects && c.effects.money) || 0}" oninput="updateEffect('${sc.id}', ${i}, 'money', this.value)"/></div>
+        <div class="ed-field"><label>Health</label><input type="number" value="${(c.effects && c.effects.health) || 0}" oninput="updateEffect('${sc.id}', ${i}, 'health', this.value)"/></div>
+        <div class="ed-field"><label>Wellbeing</label><input type="number" value="${(c.effects && c.effects.wellbeing) || 0}" oninput="updateEffect('${sc.id}', ${i}, 'wellbeing', this.value)"/></div>
+        <div class="ed-field"><label>Law heat</label><input type="number" value="${(c.effects && c.effects.law) || 0}" oninput="updateEffect('${sc.id}', ${i}, 'law', this.value)"/></div>
+      </div>
+      <div class="ed-inline">
+        <div class="ed-field"><label>Add flags (comma-separated)</label><input value="${escapeHtml((c.effects?.addFlags || []).join(", "))}" oninput="updateFlags('${sc.id}', ${i}, 'addFlags', this.value)"/></div>
+        <div class="ed-field"><label>Remove flags (comma-separated)</label><input value="${escapeHtml((c.effects?.rmFlags || []).join(", "))}" oninput="updateFlags('${sc.id}', ${i}, 'rmFlags', this.value)"/></div>
+      </div>
+      <div class="ed-field">
+        <label>Schedule delayed event (optional)</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="number" placeholder="In N choices..." value="${(c.effects?.schedule?.[0]?.[0] || "")}" oninput="updateSchedule('${sc.id}', ${i}, 'turns', this.value)" style="max-width: 140px;"/>
+          <select onchange="updateSchedule('${sc.id}', ${i}, 'sceneId', this.value)" style="flex: 1;">
+            <option value="">-- no scheduled event --</option>
+            ${allSceneIds.map(id => `<option value="${escapeHtml(id)}" ${c.effects?.schedule?.[0]?.[1] === id ? "selected" : ""}>${escapeHtml(id)}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      <div class="ed-field">
+        <label>Go to scene next</label>
+        <select onchange="updateChoice('${sc.id}', ${i}, 'nextId', this.value)">
+          ${allSceneIds.map(id => `<option value="${escapeHtml(id)}" ${c.nextId === id ? "selected" : ""}>${escapeHtml(id)}</option>`).join("")}
+          <option value="finale" ${c.nextId === "finale" ? "selected" : ""}>finale (run ending rules)</option>
+        </select>
+      </div>
+    </div>
+  `).join("");
+
+  const body = sc.ending ? `
+    <div class="ed-field"><label>Scene ID</label><input value="${escapeHtml(sc.id)}" readonly style="opacity: 0.6;"/></div>
+    <div class="ed-field"><label>Title</label><input value="${escapeHtml(sc.title)}" oninput="updateScene('${sc.id}', 'title', this.value)"/></div>
+    <div class="ed-field"><label>Ending text (use {name} for character name)</label><textarea oninput="updateScene('${sc.id}', 'text', this.value)">${escapeHtml(sc.text || "")}</textarea></div>
+    <div class="ed-field">
+      <label>Ending kind (affects color + score)</label>
+      <select onchange="updateScene('${sc.id}', 'endingKind', this.value)">
+        <option value="good" ${sc.endingKind === "good" ? "selected" : ""}>Good</option>
+        <option value="mid" ${sc.endingKind === "mid" ? "selected" : ""}>Mid</option>
+        <option value="bad" ${sc.endingKind === "bad" ? "selected" : ""}>Bad</option>
+      </select>
+    </div>
+  ` : `
+    <div class="ed-field"><label>Scene ID</label><input value="${escapeHtml(sc.id)}" readonly style="opacity: 0.6;"/></div>
+    <div class="ed-field"><label>Scene title</label><input value="${escapeHtml(sc.title)}" oninput="updateScene('${sc.id}', 'title', this.value)"/></div>
+    <div class="ed-field"><label>Scene narrative (use {name} for character name)</label><textarea style="min-height: 140px;" oninput="updateScene('${sc.id}', 'text', this.value)">${escapeHtml(sc.text || "")}</textarea></div>
+    <div class="ed-section-head"><h3>Choices (${(sc.choices || []).length})</h3><button class="ed-btn" onclick="addChoice('${sc.id}')">+ Choice</button></div>
+    ${choicesHtml}
+  `;
+
+  modal.innerHTML = `
+    <h2>${sc.ending ? "🏁 Edit Ending" : "Edit Scene"}</h2>
+    ${body}
+    <div style="display: flex; gap: 8px; margin-top: 14px;">
+      <button class="ed-btn" onclick="closeModalAndRefresh()">Done</button>
+    </div>
+  `;
+  document.getElementById("modal-bg").classList.add("open");
+}
+
+function closeModalAndRefresh() {
+  closeModal();
+  renderLevelEditor();
+}
+
+function updateScene(id, key, value) {
+  const sc = editingLevel.scenes.find(s => s.id === id);
+  if (!sc) return;
+  sc[key] = value;
+}
+function addChoice(sceneId) {
+  const sc = editingLevel.scenes.find(s => s.id === sceneId);
+  sc.choices = sc.choices || [];
+  const nextId = editingLevel.scenes.find(s => s.ending)?.id || "finale";
+  sc.choices.push({ label: "New choice", kind: "mid", feedback: "", effects: {}, nextId });
+  renderSceneEditor(sc);
+}
+function removeChoice(sceneId, i) {
+  const sc = editingLevel.scenes.find(s => s.id === sceneId);
+  sc.choices.splice(i, 1);
+  renderSceneEditor(sc);
+}
+function updateChoice(sceneId, i, key, value) {
+  const sc = editingLevel.scenes.find(s => s.id === sceneId);
+  sc.choices[i][key] = value;
+}
+function updateEffect(sceneId, i, key, value) {
+  const sc = editingLevel.scenes.find(s => s.id === sceneId);
+  sc.choices[i].effects = sc.choices[i].effects || {};
+  const v = parseInt(value);
+  sc.choices[i].effects[key] = isNaN(v) ? 0 : v;
+}
+function updateFlags(sceneId, i, key, value) {
+  const sc = editingLevel.scenes.find(s => s.id === sceneId);
+  sc.choices[i].effects = sc.choices[i].effects || {};
+  sc.choices[i].effects[key] = value.split(",").map(s => s.trim()).filter(Boolean);
+}
+function updateSchedule(sceneId, i, part, value) {
+  const sc = editingLevel.scenes.find(s => s.id === sceneId);
+  sc.choices[i].effects = sc.choices[i].effects || {};
+  const cur = sc.choices[i].effects.schedule?.[0] || [0, ""];
+  if (part === "turns") cur[0] = parseInt(value) || 0;
+  if (part === "sceneId") cur[1] = value;
+  sc.choices[i].effects.schedule = cur[1] ? [cur] : [];
+}
+
+// ============================================================
+// PLAY CUSTOM LEVELS
+// ============================================================
+function startCustomLevel(id, withCharacter) {
+  const lvl = loadCustomLevels().find(l => l.id === id);
+  if (!lvl) { alert("Level not found"); return; }
+  if (withCharacter) {
+    startCustomLevelSetup(lvl);
+  } else {
+    launchCustomLevel(lvl, []);
+  }
+}
+
+function startCustomLevelSetup(lvl) {
+  // Reuse freeplay character creation but wire it to this custom level
+  document.getElementById("stats-wrap").style.display = "none";
+  document.getElementById("notebook-btn").style.display = "none";
+  document.getElementById("menu-btn").style.display = "inline-block";
+  const game = document.getElementById("game");
+  const groupsHtml = modifierGroups.map(g => `
+    <div class="setup-card">
+      <h3>${escapeHtml(g.label)}</h3>
+      <div class="q">${escapeHtml(g.q)}</div>
+      <div class="setup-opts" data-group="${g.id}">
+        ${g.opts.map(o => `<div class="setup-opt" data-val="${o.val}"><span class="t">${escapeHtml(o.t)}</span><span class="d">${escapeHtml(o.d)}</span></div>`).join("")}
+      </div>
+    </div>
+  `).join("");
+  game.innerHTML = `
+    <div class="scene">
+      <div class="title">Custom Level · ${escapeHtml(lvl.name)}</div>
+      <h2>Build your character</h2>
+      <div style="color: var(--muted); margin: 6px 0 8px;">Modifiers change starting stats, passive drains, and law-heat multipliers even in user-made levels.</div>
+    </div>
+    ${groupsHtml}
+    <button class="restart" id="begin-btn" onclick="beginCustomWithChar('${lvl.id}')" disabled style="opacity:0.4">Begin →</button>
+    <button class="restart ghost" onclick="returnToMenu()">Cancel</button>
+  `;
+  document.querySelectorAll(".setup-opts").forEach(group => {
+    group.querySelectorAll(".setup-opt").forEach(opt => {
+      opt.onclick = () => {
+        group.querySelectorAll(".setup-opt").forEach(o => o.classList.remove("selected"));
+        opt.classList.add("selected");
+        checkSetupDone();
+      };
+    });
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function beginCustomWithChar(id) {
+  const lvl = loadCustomLevels().find(l => l.id === id);
+  if (!lvl) return;
+  const mods = modifierGroups.map(g =>
+    document.querySelector(`.setup-opts[data-group="${g.id}"] .setup-opt.selected`).dataset.val
+  );
+  launchCustomLevel(lvl, mods);
+}
+
+function launchCustomLevel(lvl, mods) {
+  const scenario = dataLevelToScenario(lvl);
+  scenarios[lvl.id] = scenario; // temporarily register for renderEnding lookup
+  educationalContent[lvl.id] = dataLevelToEducation(lvl);
+  state = freshState(lvl.startMoney || 0);
+  state.char.name = lvl.defaultName || "You";
+  (mods || []).forEach(m => state.char.modifiers.add(m));
+  if (mods && mods.length) applyStartingModifiers(state);
+  state.currentScenario = lvl.id;
+  state.sceneMap = scenario.scenes;
+  showGameUI();
+  renderStats();
+  renderScene(scenario.startId, null);
+}
+
+function playEditingLevel(withCharacter) {
+  if (!editingLevel) return;
+  upsertCustomLevel(editingLevel); // save first
+  if (withCharacter) {
+    startCustomLevelSetup(editingLevel);
+  } else {
+    launchCustomLevel(editingLevel, []);
+  }
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderStats() {
+  document.getElementById("v-health").textContent = state.stats.health;
+  document.getElementById("b-health").style.width = state.stats.health + "%";
+  document.getElementById("v-well").textContent = state.stats.wellbeing;
+  document.getElementById("b-well").style.width = state.stats.wellbeing + "%";
+  document.getElementById("v-money").textContent = Math.round(state.stats.money).toLocaleString();
+  document.getElementById("v-law").textContent = Math.round(state.law);
+  document.getElementById("b-law").style.width = Math.min(100, state.law) + "%";
+  document.getElementById("law-wrap").classList.toggle("hot", state.law >= 60);
+
+  document.body.classList.toggle("alert-law", state.law >= 80);
+
+  const modsEl = document.getElementById("mods");
+  modsEl.innerHTML = Array.from(state.char.modifiers)
+    .filter(k => modifierDefs[k] && !modifierDefs[k].neutral)
+    .map(k => `<span class="chip">${modifierDefs[k].name}</span>`)
+    .join("");
+
+  document.getElementById("char-name").textContent = state.char.name ? `· ${state.char.name}` : "";
+}
+
+function renderScene(sceneId, pendingFeedback) {
+  const scene = state.sceneMap[sceneId];
+  if (!scene) { renderEnding("ending_mid"); return; }
+  if (scene.ending) { renderEnding(sceneId); return; }
+
+  const game = document.getElementById("game");
+  const fbHtml = pendingFeedback ? renderFeedback(pendingFeedback) : "";
+
+  game.innerHTML = `
+    ${fbHtml}
+    <div class="scene">
+      <div class="title">${scene.title}</div>
+      ${typeof scene.text === "function" ? scene.text() : scene.text}
+    </div>
+    <div class="choices" id="choices"></div>
+  `;
+
+  const letters = "ABCDEFGH";
+  const cEl = document.getElementById("choices");
+  const order = scene.choices.map((_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  order.forEach((origIdx, displayIdx) => {
+    const c = scene.choices[origIdx];
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    btn.innerHTML = `<span class="letter">[${letters[displayIdx]}]</span>${escapeHtml(typeof c.label === "function" ? c.label(state) : c.label)}`;
+    btn.onclick = () => pickChoice(sceneId, origIdx);
+    cEl.appendChild(btn);
+  });
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderFeedback(fb) {
+  const d = fb.delta || {};
+  const deltas = [];
+  if (d.money)     deltas.push(`<span class="delta ${d.money >= 0 ? 'pos' : 'neg'}">${d.money >= 0 ? '+' : ''}$${Math.round(d.money)}</span>`);
+  if (d.health)    deltas.push(`<span class="delta ${d.health >= 0 ? 'pos' : 'neg'}">${d.health >= 0 ? '+' : ''}${d.health} Health</span>`);
+  if (d.wellbeing) deltas.push(`<span class="delta ${d.wellbeing >= 0 ? 'pos' : 'neg'}">${d.wellbeing >= 0 ? '+' : ''}${d.wellbeing} Wellbeing</span>`);
+  if (d.law)       deltas.push(`<span class="delta ${d.law >= 0 ? 'neg' : 'pos'}">${d.law >= 0 ? '+' : ''}${Math.round(d.law)} Law</span>`);
+  const deltaBlock = deltas.length ? `<div class="deltas">${deltas.join("")}</div>` : "";
+  const label = fb.kind === "good" ? "✓ Good call" : fb.kind === "bad" ? "✗ Bad call" : "~ Mixed bag";
+  return `<div class="feedback ${fb.kind}"><div class="label">${label}</div>${escapeHtml(fb.text || "")}${deltaBlock}</div>`;
+}
+
+function resolveEffects(effects) {
+  const out = {};
+  Object.entries(effects || {}).forEach(([k, v]) => {
+    out[k] = typeof v === "function" ? v() : v;
+  });
+  return out;
+}
+
+function pickChoice(sceneId, choiceIdx) {
+  const scene = state.sceneMap[sceneId];
+  const choice = scene.choices[choiceIdx];
+
+  const resolved = resolveEffects(choice.effects);
+  const before = { money: state.stats.money, health: state.stats.health, wellbeing: state.stats.wellbeing, law: state.law };
+
+  logChoice(scene.title + " — " + (typeof scene.text === "function" ? scene.text() : scene.text).split("\n")[0], scene.choices, choiceIdx);
+
+  applyEffects(state, resolved);
+  if (choice.onRun) choice.onRun();
+  state.turn += 1;
+
+  const delta = {
+    money: state.stats.money - before.money,
+    health: state.stats.health - before.health,
+    wellbeing: state.stats.wellbeing - before.wellbeing,
+    law: state.law - before.law,
+  };
+
+  flashBody(choice.kind);
+  renderStats();
+
+  const feedback = { kind: choice.kind, text: choice.feedback, delta };
+
+  if (state.gameOver && state.pendingForcedEnd) {
+    renderEnding(state.pendingForcedEnd);
+    return;
+  }
+
+  let nextId = choice.next ? choice.next(state) : choice.nextId;
+
+  // Pending scheduled event interrupt
+  const pending = checkPendingEvents();
+  if (pending && nextId !== null && state.sceneMap[pending]) {
+    const resumeId = nextId;
+    nextId = pending;
+    state.sceneMap[pending]._resumeTo = resumeId;
+  }
+
+  if (nextId === null) {
+    const resume = scene._resumeTo || "finale";
+    scene._resumeTo = null;
+    renderScene(resume, feedback);
+  } else {
+    renderScene(nextId, feedback);
+  }
+}
+
+function flashBody(kind) {
+  const cls = kind === "good" ? "flash-good" : kind === "bad" ? "flash-bad" : "flash-mid";
+  document.body.classList.remove("flash-good", "flash-bad", "flash-mid");
+  void document.body.offsetWidth;
+  document.body.classList.add(cls);
+  setTimeout(() => document.body.classList.remove(cls), 800);
+}
+
+function renderEnding(endingId) {
+  const e = state.sceneMap[endingId] || sharedEndings[endingId] || { kind: "mid", title: "END", text: () => "The story ends here." };
+  const game = document.getElementById("game");
+  const kind = e.kind || "mid";
+
+  const edu = educationalContent[state.currentScenario];
+  const reasons = edu ? edu.analyze(state) : [];
+  const lessons = edu ? edu.lessons : [];
+
+  const reasonIcons = { good: "✓", bad: "✗", mid: "~" };
+  const reasonsHtml = reasons.length ? `
+    <div class="ending-analysis">
+      <h3>Why you got this ending</h3>
+      ${reasons.map(r => `<div class="reason ${r.kind}"><span class="ic">${reasonIcons[r.kind]}</span><span>${escapeHtml(r.text)}</span></div>`).join("")}
+    </div>
+  ` : "";
+
+  const lessonsHtml = lessons.length ? `
+    <div class="ending-analysis">
+      <h3>💡 Key takeaways — remember these for real life</h3>
+      ${lessons.map(l => `<div class="lesson"><div class="t">${escapeHtml(l.t)}</div><div class="d">${escapeHtml(l.d)}</div></div>`).join("")}
+    </div>
+  ` : "";
+
+  game.innerHTML = `
+    <div class="ending ${kind}">
+      <h1 class="${kind}">${e.title}</h1>
+      <div class="narrative">${(typeof e.text === "function" ? e.text() : e.text).replace(/\n/g, "<br>")}</div>
+      <div class="stats-line">
+        Health: <b>${state.stats.health}</b> · Wellbeing: <b>${state.stats.wellbeing}</b> · Cash: <b>$${Math.round(state.stats.money).toLocaleString()}</b> · Law heat: <b>${Math.round(state.law)}%</b>
+      </div>
+      ${reasonsHtml}
+      ${lessonsHtml}
+      <div class="actions-row">
+        <button class="restart" onclick="returnToMenu()">← New game</button>
+        <button class="restart ghost" onclick="toggleDrawer()">📓 Review notebook</button>
+      </div>
+    </div>
+  `;
+  renderStats();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// ============================================================
+// NOTEBOOK
+// ============================================================
+function logChoice(question, choices, pickedIdx) {
+  const picked = choices[pickedIdx];
+  state.notebook.push({
+    turn: state.turn,
+    q: question,
+    pickedLabel: typeof picked.label === "function" ? picked.label(state) : picked.label,
+    feedback: picked.feedback,
+    kind: picked.kind,
+    others: choices.filter((_, i) => i !== pickedIdx).map(c => typeof c.label === "function" ? c.label(state) : c.label)
+  });
+}
+
+function renderNotebook() {
+  const el = document.getElementById("notes");
+  if (!state || !state.notebook?.length) {
+    el.innerHTML = `<div style="color: var(--muted); font-size: 14px; padding: 20px 0;">Your notebook is empty. Make some choices and they'll show up here.</div>`;
+    return;
+  }
+  el.innerHTML = state.notebook.slice().reverse().map(n => `
+    <div class="note">
+      <div class="day-tag">Turn ${n.turn + 1}</div>
+      <div class="q">${escapeHtml(n.q)}</div>
+      <div class="a-picked ${n.kind}">✓ ${escapeHtml(n.pickedLabel)}</div>
+      ${n.feedback ? `<div class="a-fb">${escapeHtml(n.feedback)}</div>` : ""}
+      ${n.others.length ? `<div style="font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; margin: 8px 0 4px;">Roads not taken</div>` : ""}
+      ${n.others.map(o => `<div class="a-other">${escapeHtml(o)}</div>`).join("")}
+    </div>
+  `).join("");
+}
+function escapeHtml(s) { return (s || "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+
+// ============================================================
+// MENU + TABS + FREEPLAY CHAR CREATION
+// ============================================================
+function renderMenu() {
+  document.getElementById("stats-wrap").style.display = "none";
+  document.getElementById("notebook-btn").style.display = "none";
+  document.getElementById("menu-btn").style.display = "none";
+  document.getElementById("char-name").textContent = "";
+  document.body.classList.remove("alert-law");
+
+  const game = document.getElementById("game");
+  const tabsHtml = `
+    <div class="tabs">
+      <button class="tab ${activeTab === 'campaign' ? 'active' : ''}" onclick="switchTab('campaign')">Campaign</button>
+      <button class="tab ${activeTab === 'freeplay' ? 'active' : ''}" onclick="switchTab('freeplay')">Freeplay</button>
+      <button class="tab ${activeTab === 'leveldesign' ? 'active' : ''}" onclick="switchTab('leveldesign')">Level Design</button>
+    </div>
+  `;
+
+  if (activeTab === "leveldesign") {
+    game.innerHTML = tabsHtml + renderLevelDesignLanding();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
+  game.innerHTML = `
+    ${tabsHtml}
+    <div class="scene" style="background: transparent; box-shadow: none; border: none; padding: 0 4px 12px;">
+      <div class="title">${activeTab === "campaign" ? "Preset scenarios" : "Build your own character"}</div>
+      ${activeTab === "campaign"
+        ? "Three preset stories with fixed characters. Each is about 10–14 decisions with branching consequences."
+        : "Pick a scenario, then design a character with modifiers (record, immigration status, family support). Modifiers change what happens."
+      }
+    </div>
+    ${Object.values(scenarios).map(sc => `
+      <div class="menu-card" onclick="${activeTab === 'campaign' ? `startCampaign('${sc.id}')` : `startFreeplaySetup('${sc.id}')`}">
+        <h3>${sc.name}</h3>
+        <div class="who">${sc.who}</div>
+        <div class="desc">${sc.desc}</div>
+      </div>
+    `).join("")}
+  `;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function switchTab(t) { activeTab = t; renderMenu(); }
+
+function startCampaign(id) {
+  const sc = scenarios[id];
+  state = freshState(sc.startMoney);
+  state.char.name = sc.defaultName;
+  state.currentScenario = id;
+  state.sceneMap = sc.scenes;
+  showGameUI();
+  renderStats();
+  renderScene(sc.startId, null);
+}
+
+function startFreeplaySetup(scenarioId) {
+  document.getElementById("stats-wrap").style.display = "none";
+  document.getElementById("notebook-btn").style.display = "none";
+  document.getElementById("menu-btn").style.display = "inline-block";
+  const sc = scenarios[scenarioId];
+  const game = document.getElementById("game");
+
+  const groupsHtml = modifierGroups.map(g => `
+    <div class="setup-card">
+      <h3>${escapeHtml(g.label)}</h3>
+      <div class="q">${escapeHtml(g.q)}</div>
+      <div class="setup-opts" data-group="${g.id}">
+        ${g.opts.map(o => `
+          <div class="setup-opt" data-val="${o.val}">
+            <span class="t">${escapeHtml(o.t)}</span>
+            <span class="d">${escapeHtml(o.d)}</span>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  game.innerHTML = `
+    <div class="scene">
+      <div class="title">Freeplay · ${sc.name}</div>
+      <h2>Build your character</h2>
+      <div style="color: var(--muted); margin: 6px 0 8px;">Your answers shift starting stats, passive drains, and how likely things go right or wrong in "${sc.name}". Playing as <b>${sc.defaultName}</b>. Pick one option in each category — ${modifierGroups.length} total.</div>
+    </div>
+    ${groupsHtml}
+    <button class="restart" id="begin-btn" onclick="beginFreeplay('${scenarioId}')" disabled style="opacity:0.4">Begin →</button>
+    <button class="restart ghost" onclick="returnToMenu()">Cancel</button>
+  `;
+  document.querySelectorAll(".setup-opts").forEach(group => {
+    group.querySelectorAll(".setup-opt").forEach(opt => {
+      opt.onclick = () => {
+        group.querySelectorAll(".setup-opt").forEach(o => o.classList.remove("selected"));
+        opt.classList.add("selected");
+        checkSetupDone();
+      };
+    });
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function checkSetupDone() {
+  const done = modifierGroups.every(g => document.querySelector(`.setup-opts[data-group="${g.id}"] .setup-opt.selected`));
+  const btn = document.getElementById("begin-btn");
+  btn.disabled = !done;
+  btn.style.opacity = done ? "1" : "0.4";
+}
+
+function beginFreeplay(scenarioId) {
+  const mods = modifierGroups.map(g =>
+    document.querySelector(`.setup-opts[data-group="${g.id}"] .setup-opt.selected`).dataset.val
+  );
+  const sc = scenarios[scenarioId];
+  state = freshState(sc.startMoney);
+  state.char.name = sc.defaultName;
+  mods.forEach(m => state.char.modifiers.add(m));
+  applyStartingModifiers(state);
+  state.currentScenario = scenarioId;
+  state.sceneMap = sc.scenes;
+  showGameUI();
+  renderStats();
+  renderScene(sc.startId, null);
+}
+
+function showGameUI() {
+  document.getElementById("stats-wrap").style.display = "block";
+  document.getElementById("notebook-btn").style.display = "inline-block";
+  document.getElementById("menu-btn").style.display = "inline-block";
+}
+
+function returnToMenu() {
+  document.body.classList.remove("alert-law", "flash-good", "flash-bad", "flash-mid");
+  renderMenu();
+}
+
+// ============================================================
+// UI TOGGLES
+// ============================================================
+function toggleDark() {
+  document.body.classList.toggle("dark");
+  try { localStorage.setItem("ns_dark", document.body.classList.contains("dark") ? "1" : "0"); } catch(e){}
+}
+function toggleDrawer() {
+  document.getElementById("drawer").classList.toggle("open");
+  document.getElementById("drawer-bg").classList.toggle("open");
+  renderNotebook();
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+try { if (localStorage.getItem("ns_dark") === "1") document.body.classList.add("dark"); } catch(e){}
+renderMenu();
+</script>
+</body>
+</html>
