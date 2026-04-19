@@ -68,6 +68,20 @@ export function pickChoice(s: GameState, choice: Choice, scenario: Scenario): Pi
   applyEffects(s, choice.effects);
   s.turn += 1;
 
+  // Forced ending takes priority (health=0 or wellbeing=0)
+  if (s.gameOver && s.forcedEndId && scenario.scenes[s.forcedEndId]) {
+    s.currentSceneId = s.forcedEndId;
+    return {
+      delta: {
+        money: s.money - before.money,
+        health: s.health - before.health,
+        wellbeing: s.wellbeing - before.wellbeing,
+        law: s.law - before.law,
+      },
+      nextSceneId: s.forcedEndId,
+    };
+  }
+
   let nextId = choice.next ? choice.next(s) : (choice.nextId ?? null);
 
   // Check for scheduled event interrupt

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/lifelevel/"
+title = "LifeLevel"
+version = "1.0.0"
+id = "artifacts/lifelevel"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/lifelevel/" ]
+localPort = 24665
+
+[services.development]
+run = "pnpm --filter @workspace/lifelevel run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/lifelevel", "run", "build" ]
+publicDir = "artifacts/lifelevel/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24665"
+BASE_PATH = "/lifelevel/"

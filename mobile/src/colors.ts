@@ -1,38 +1,41 @@
-export const colors = {
+export const lightColors = {
   background: "#FAFAF8",
-  card: "#FFFFFF",
   foreground: "#1a1a2e",
+  card: "#FFFFFF",
+  cardForeground: "#1a1a2e",
   muted: "#F0EFEB",
   mutedForeground: "#8A8A9A",
   border: "#E8E8E8",
-
   primary: "#FF6B6B",
   primaryForeground: "#FFFFFF",
-  primarySoft: "rgba(255, 107, 107, 0.12)",
-
+  primarySoft: "rgba(255,107,107,0.14)",
   secondary: "#4ECDC4",
-  secondaryForeground: "#FFFFFF",
-  secondarySoft: "rgba(78, 205, 196, 0.15)",
-
+  secondarySoft: "rgba(78,205,196,0.16)",
   accent: "#FFE66D",
-
   success: "#2ED573",
-  successSoft: "rgba(46, 213, 115, 0.14)",
+  successSoft: "rgba(46,213,115,0.16)",
   warning: "#FFA502",
-  warningSoft: "rgba(255, 165, 2, 0.14)",
+  warningSoft: "rgba(255,165,2,0.16)",
   destructive: "#FF4757",
-  destructiveSoft: "rgba(255, 71, 87, 0.14)",
-
+  destructiveSoft: "rgba(255,71,87,0.16)",
   health: "#FF6B6B",
   wellbeing: "#A29BFE",
-  money: "#2ED573",
   law: "#FF4757",
-
   scenarioTaxes: "#4ECDC4",
   scenarioLease: "#A29BFE",
   scenarioJob: "#FFA502",
-
   radius: 16,
 };
 
-export type Colors = typeof colors;
+export const darkColors = {
+  ...lightColors,
+  background: "#0D0D12",
+  foreground: "#F0F0F5",
+  card: "#17171F",
+  cardForeground: "#F0F0F5",
+  muted: "#1E1E2A",
+  mutedForeground: "#9090A8",
+  border: "#252530",
+};
+
+export type Palette = typeof lightColors;
