@@ -20,6 +20,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "book", selected: "book.fill" }} />
         <Label>Learn</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="simulate">
+        <Icon sf={{ default: "gamecontroller", selected: "gamecontroller.fill" }} />
+        <Label>Play</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="tools">
         <Icon sf={{ default: "wrench", selected: "wrench.fill" }} />
         <Label>Tools</Label>
@@ -96,6 +100,18 @@ function ClassicTabLayout() {
               <SymbolView name="book" tintColor={color} size={24} />
             ) : (
               <Feather name="book-open" size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="simulate"
+        options={{
+          title: "Play",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="gamecontroller" tintColor={color} size={24} />
+            ) : (
+              <Feather name="play-circle" size={22} color={color} />
             ),
         }}
       />

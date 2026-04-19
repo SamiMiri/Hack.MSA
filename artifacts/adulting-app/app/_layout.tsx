@@ -15,6 +15,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider, useApp } from "@/context/AppContext";
+import { GameProvider } from "@/context/GameContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -40,6 +41,7 @@ function RootLayoutNav() {
         name="lesson/[trackId]/[lessonId]"
         options={{ headerShown: false, presentation: "modal" }}
       />
+      <Stack.Screen name="simulator" options={{ headerShown: false }} />
     </Stack>
   );
 }
@@ -66,7 +68,9 @@ function AppContent() {
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView>
             <KeyboardProvider>
-              <RootLayoutNav />
+              <GameProvider>
+                <RootLayoutNav />
+              </GameProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>
         </QueryClientProvider>
