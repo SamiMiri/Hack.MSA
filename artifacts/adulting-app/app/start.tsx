@@ -20,7 +20,7 @@ import { Feather } from "@expo/vector-icons";
 
 import { useNav } from "@/context/NavigationContext";
 
-const START_IMAGE = require("@/assets/start-screen.jpg");
+const START_IMAGE = require("../assets/start-screen.jpg");
 
 function PlayButton({ onPress }: { onPress: () => void }) {
   const scale = useSharedValue(1);
