@@ -6,7 +6,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack, router } from "expo-router";
+import { Stack, router, useRootNavigationState } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -24,14 +24,20 @@ const queryClient = new QueryClient();
 
 function RootLayoutNav() {
   const { onboardingComplete } = useApp();
+  const navigationState = useRootNavigationState();
 
   useEffect(() => {
+    // Wait for the navigation state to be fully loaded before redirecting.
+    // On iOS native, the navigator isn't ready synchronously on mount, which
+    // causes router.replace() to land on the +not-found screen.
+    if (!navigationState?.key) return;
+
     if (!onboardingComplete) {
       router.replace("/start");
     } else {
       router.replace("/(tabs)");
     }
-  }, [onboardingComplete]);
+  }, [onboardingComplete, navigationState?.key]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
