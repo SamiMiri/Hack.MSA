@@ -47,6 +47,7 @@ export interface LeaseCheckItem {
 
 interface AppContextType {
   onboardingComplete: boolean;
+  resetApp: () => Promise<void>;
   profile: UserProfile | null;
   completedLessons: LessonProgress[];
   budgetItems: BudgetItem[];
@@ -308,10 +309,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [unlockedScenarios]
   );
 
+  const resetApp = useCallback(async () => {
+    await AsyncStorage.multiRemove(Object.values(STORAGE_KEYS));
+    setOnboardingComplete(false);
+    setProfile(null);
+    setCompletedLessons([]);
+    setBudgetItems(DEFAULT_BUDGET_ITEMS);
+    setTaxDocuments(DEFAULT_TAX_DOCS);
+    setLeaseChecklist(DEFAULT_LEASE_CHECKLIST);
+    setCoins(0);
+    setUnlockedTracks([]);
+    setUnlockedScenarios([]);
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
         onboardingComplete,
+        resetApp,
         profile,
         completedLessons,
         budgetItems,
