@@ -219,10 +219,10 @@ function ClassicTabLayout() {
             ),
           }}
         />
-        {/* Hidden routes — accessible via dropdown */}
-        <Tabs.Screen name="tools" options={{ tabBarButton: () => null }} />
-        <Tabs.Screen name="progress" options={{ tabBarButton: () => null }} />
-        <Tabs.Screen name="settings" options={{ tabBarButton: () => null }} />
+        {/* Hidden routes — accessible via dropdown, fully removed from tab bar layout */}
+        <Tabs.Screen name="tools" options={{ tabBarButton: () => null, tabBarItemStyle: { display: "none" } }} />
+        <Tabs.Screen name="progress" options={{ tabBarButton: () => null, tabBarItemStyle: { display: "none" } }} />
+        <Tabs.Screen name="settings" options={{ tabBarButton: () => null, tabBarItemStyle: { display: "none" } }} />
       </Tabs>
     </>
   );
@@ -274,6 +274,7 @@ const styles = StyleSheet.create({
   },
   moreButton: {
     flex: 1,
+    height: "100%",
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
