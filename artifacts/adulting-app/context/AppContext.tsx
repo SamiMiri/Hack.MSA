@@ -12,6 +12,8 @@ export interface UserProfile {
   biggestNeed: string;
   goal: string;
   name: string;
+  displayName?: string;
+  avatarId?: number;
 }
 
 export interface LessonProgress {
@@ -58,6 +60,7 @@ interface AppContextType {
   unlockedTracks: string[];
   unlockedScenarios: string[];
   completeOnboarding: (profile: UserProfile) => Promise<void>;
+  updateProfile: (updates: Partial<Pick<UserProfile, 'displayName' | 'avatarId'>>) => Promise<void>;
   completeLesson: (progress: LessonProgress) => Promise<void>;
   updateBudgetItems: (items: BudgetItem[]) => Promise<void>;
   toggleTaxDocument: (id: string) => Promise<void>;
@@ -206,6 +209,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(p));
   }, []);
 
+  const updateProfile = useCallback(async (updates: Partial<Pick<UserProfile, 'displayName' | 'avatarId'>>) => {
+    setProfile((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...updates };
+      AsyncStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   const completeLesson = useCallback(
     async (progress: LessonProgress) => {
       const alreadyDone = completedLessons.some((l) => l.lessonId === progress.lessonId);
@@ -340,6 +352,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         unlockedTracks,
         unlockedScenarios,
         completeOnboarding,
+        updateProfile,
         completeLesson,
         updateBudgetItems,
         toggleTaxDocument,
