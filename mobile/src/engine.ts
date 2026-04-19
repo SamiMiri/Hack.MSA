@@ -10,6 +10,9 @@ export function freshState(scenarioId: string, startMoney: number, charName: str
     wellbeing: 70,
     money: startMoney,
     law: 0,
+    healthDebt: 0,
+    wellbeingDebt: 0,
+    lawDebt: 0,
     flags: new Set(),
     pending: [],
     turn: 0,
@@ -26,17 +29,22 @@ export function clamp(x: number, lo: number, hi: number) {
 
 export function applyEffects(s: GameState, e: Effects | undefined) {
   if (!e) return;
-  if (e.money) s.money += e.money;
-  if (e.health) s.health = clamp(s.health + e.health, 0, 100);
-  if (e.wellbeing) s.wellbeing = clamp(s.wellbeing + e.wellbeing, 0, 100);
+  if (e.money) s.money += Math.round(e.money);
+  if (e.health) s.health = clamp(s.health + Math.round(e.health), 0, 100);
+  if (e.wellbeing) s.wellbeing = clamp(s.wellbeing + Math.round(e.wellbeing), 0, 100);
   if (e.law !== undefined) {
     const v = e.law > 0 ? lawTick(s, e.law) : e.law;
-    s.law = clamp(s.law + v, 0, 100);
+    s.law = clamp(s.law + Math.round(v), 0, 100);
   }
   if (e.addFlags) e.addFlags.forEach(f => s.flags.add(f));
   if (e.rmFlags) e.rmFlags.forEach(f => s.flags.delete(f));
   if (e.schedule) e.schedule.forEach(([t, id]) => s.pending.push({ turn: s.turn + t, sceneId: id }));
   applyPassiveDrains(s);
+  // Final safety net — ensure every displayed stat is an integer
+  s.money = Math.round(s.money);
+  s.health = Math.round(s.health);
+  s.wellbeing = Math.round(s.wellbeing);
+  s.law = Math.round(s.law);
   if (s.health <= 0) { s.gameOver = true; s.forcedEndId = "ending_hospital"; }
   if (s.wellbeing <= 0) { s.gameOver = true; s.forcedEndId = "ending_breakdown"; }
 }
@@ -73,10 +81,10 @@ export function pickChoice(s: GameState, choice: Choice, scenario: Scenario): Pi
     s.currentSceneId = s.forcedEndId;
     return {
       delta: {
-        money: s.money - before.money,
-        health: s.health - before.health,
-        wellbeing: s.wellbeing - before.wellbeing,
-        law: s.law - before.law,
+        money: Math.round(s.money - before.money),
+        health: Math.round(s.health - before.health),
+        wellbeing: Math.round(s.wellbeing - before.wellbeing),
+        law: Math.round(s.law - before.law),
       },
       nextSceneId: s.forcedEndId,
     };
@@ -100,10 +108,10 @@ export function pickChoice(s: GameState, choice: Choice, scenario: Scenario): Pi
   s.currentSceneId = nextId;
   return {
     delta: {
-      money: s.money - before.money,
-      health: s.health - before.health,
-      wellbeing: s.wellbeing - before.wellbeing,
-      law: s.law - before.law,
+      money: Math.round(s.money - before.money),
+      health: Math.round(s.health - before.health),
+      wellbeing: Math.round(s.wellbeing - before.wellbeing),
+      law: Math.round(s.law - before.law),
     },
     nextSceneId: nextId,
   };

@@ -14,6 +14,7 @@ import { modifierDefs, modifierGroups, applyStartingModifiers, applyPassiveDrain
 import { freshState, applyEffects, shufflePickOrder, pickChoice } from "./src/engine";
 import { EDUCATION } from "./src/education";
 import { CustomLevel, loadLevels, upsertLevel, removeLevel, blankLevel, newSceneId, evalRules, interpolate } from "./src/levelStore";
+import { SavedCharacter, CHARACTER_PRESETS, loadCharacters, upsertCharacter, removeCharacter, newCharacterId, nextCharacterName } from "./src/characterStore";
 
 // ============================================================
 // THEME
@@ -43,13 +44,16 @@ type Route =
   | { name: "learn" }
   | { name: "learn-detail"; scenarioId: string }
   | { name: "play" }
-  | { name: "play-character-select"; scenarioId: string; isCustom?: boolean; customId?: string }
+  | { name: "campaign-char-choice"; scenarioId: string }
+  | { name: "custom-level-char-choice"; customId: string }
   | { name: "game" }
   | { name: "outcome" }
   | { name: "tools" }
   | { name: "progress" }
   | { name: "settings" }
   | { name: "characters" }
+  | { name: "characters-create" }
+  | { name: "characters-create-custom" }
   | { name: "level-editor-list" }
   | { name: "level-editor"; levelId: string };
 
@@ -129,10 +133,12 @@ export default function App() {
   const [gameScenario, setGameScenario] = useState<Scenario | null>(null);
   const [pendingFeedback, setPendingFeedback] = useState<any>(null);
   const [levels, setLevels] = useState<CustomLevel[]>([]);
+  const [characters, setCharacters] = useState<SavedCharacter[]>([]);
 
-  // Load custom levels on mount and whenever route changes to level design
+  // Reload custom levels + characters whenever the route changes.
   useEffect(() => {
     loadLevels().then(setLevels);
+    loadCharacters().then(setCharacters);
   }, [route.name]);
 
   if (!fontsLoaded) {
@@ -141,31 +147,22 @@ export default function App() {
 
   const nav = (r: Route) => { setMoreOpen(false); setRoute(r); };
 
-  // ---------- GAME LAUNCHERS ----------
-  const startCampaign = (scenarioId: string) => {
-    const sc = SCENARIO_MAP[scenarioId];
-    if (!sc) return;
-    const s = freshState(sc.id, sc.startMoney, sc.defaultName);
-    s.currentSceneId = sc.startSceneId;
-    setGameScenario(sc);
-    setGameState(s);
-    setPendingFeedback(null);
-    setRoute({ name: "game" });
-  };
-
-  const startFreeplayCustom = (scenarioId: string, modifiers: string[], isCustom?: boolean, customId?: string) => {
-    let sc: Scenario | null = null;
-    if (isCustom && customId) {
-      const lvl = levels.find(l => l.id === customId);
+  // ---------- GAME LAUNCHER ----------
+  // Unified launcher for both built-in campaigns and custom levels, with
+  // optional modifiers from a saved character.
+  const launchScenario = (opts: { scenarioId: string; isCustom?: boolean; modifiers?: string[] }) => {
+    let sc: Scenario | null;
+    if (opts.isCustom) {
+      const lvl = levels.find(l => l.id === opts.scenarioId);
       if (!lvl) return;
       sc = customLevelToScenario(lvl);
     } else {
-      sc = SCENARIO_MAP[scenarioId] || null;
+      sc = SCENARIO_MAP[opts.scenarioId] || null;
     }
     if (!sc) return;
     const s = freshState(sc.id, sc.startMoney, sc.defaultName);
-    modifiers.forEach(m => s.modifiers.add(m));
-    applyStartingModifiers(s);
+    (opts.modifiers || []).forEach(m => s.modifiers.add(m));
+    if ((opts.modifiers || []).length > 0) applyStartingModifiers(s);
     s.currentSceneId = sc.startSceneId;
     setGameScenario(sc);
     setGameState(s);
@@ -201,7 +198,7 @@ export default function App() {
       screen = <HomeScreen colors={c} onOpenLearn={() => nav({ name: "learn" })} onOpenPlay={() => nav({ name: "play" })} />;
       break;
     case "learn":
-      screen = <LearnScreen colors={c} onPick={(id) => nav({ name: "learn-detail", scenarioId: id })} />;
+      screen = <LearnScreen colors={c} onPick={(id: string) => nav({ name: "learn-detail", scenarioId: id })} />;
       break;
     case "learn-detail":
       screen = <LearnDetailScreen colors={c} scenarioId={(route as any).scenarioId} onBack={() => nav({ name: "learn" })} />;
@@ -209,23 +206,79 @@ export default function App() {
     case "play":
       screen = <PlayScreen colors={c}
         levels={levels}
-        onCampaign={(id) => startCampaign(id)}
-        onFreeplay={(id) => nav({ name: "play-character-select", scenarioId: id })}
-        onCustomPlay={(lvl) => startFreeplayCustom(lvl.id, [], true, lvl.id)}
-        onCustomPlayWithChar={(lvl) => nav({ name: "play-character-select", scenarioId: lvl.id, isCustom: true, customId: lvl.id })}
+        onCampaign={(id: string) => nav({ name: "campaign-char-choice", scenarioId: id })}
+        onCustomPlay={(lvl: CustomLevel) => nav({ name: "custom-level-char-choice", customId: lvl.id })}
         onOpenLevelDesign={() => nav({ name: "level-editor-list" })}
       />;
       break;
-    case "play-character-select": {
-      const r = route as any;
-      screen = <CharacterSelectScreen colors={c}
-        scenarioId={r.scenarioId} isCustom={!!r.isCustom} customId={r.customId}
-        levels={levels}
-        onBegin={(mods) => startFreeplayCustom(r.scenarioId, mods, r.isCustom, r.customId)}
+    case "campaign-char-choice": {
+      const r = route as Extract<Route, { name: "campaign-char-choice" }>;
+      screen = <CharacterPickScreen colors={c}
+        title={SCENARIO_MAP[r.scenarioId]?.name || "Campaign"}
+        subtitle="Who are you playing as?"
+        defaultCharName={SCENARIO_MAP[r.scenarioId]?.defaultName || "Default"}
+        characters={characters}
+        onDefault={() => launchScenario({ scenarioId: r.scenarioId })}
+        onPickCharacter={(ch: SavedCharacter) => launchScenario({ scenarioId: r.scenarioId, modifiers: ch.modifiers })}
+        onCreateFirst={() => nav({ name: "characters-create" })}
         onCancel={() => nav({ name: "play" })}
       />;
       break;
     }
+    case "custom-level-char-choice": {
+      const r = route as Extract<Route, { name: "custom-level-char-choice" }>;
+      const lvl = levels.find(l => l.id === r.customId);
+      screen = <CharacterPickScreen colors={c}
+        title={lvl?.name || "Custom Level"}
+        subtitle="Who are you playing as?"
+        defaultCharName={lvl?.defaultName || "Default"}
+        characters={characters}
+        onDefault={() => launchScenario({ scenarioId: r.customId, isCustom: true })}
+        onPickCharacter={(ch: SavedCharacter) => launchScenario({ scenarioId: r.customId, isCustom: true, modifiers: ch.modifiers })}
+        onCreateFirst={() => nav({ name: "characters-create" })}
+        onCancel={() => nav({ name: "play" })}
+      />;
+      break;
+    }
+    case "characters-create":
+      screen = <CharacterCreatorScreen colors={c}
+        existing={characters}
+        onPickPreset={async (presetKey: string) => {
+          const preset = CHARACTER_PRESETS.find(p => p.key === presetKey);
+          if (!preset) return;
+          const c2: SavedCharacter = {
+            id: newCharacterId(),
+            name: nextCharacterName(characters, preset.name),
+            modifiers: [...preset.mods],
+            presetKey,
+            createdAt: Date.now(),
+          };
+          await upsertCharacter(c2);
+          setCharacters(await loadCharacters());
+          nav({ name: "characters" });
+        }}
+        onCustom={() => nav({ name: "characters-create-custom" })}
+        onCancel={() => nav({ name: "characters" })}
+      />;
+      break;
+    case "characters-create-custom":
+      screen = <CustomCharacterCreatorScreen colors={c}
+        existing={characters}
+        onSave={async (name: string, mods: string[]) => {
+          const c2: SavedCharacter = {
+            id: newCharacterId(),
+            name: name || nextCharacterName(characters, "Custom"),
+            modifiers: mods,
+            presetKey: "custom",
+            createdAt: Date.now(),
+          };
+          await upsertCharacter(c2);
+          setCharacters(await loadCharacters());
+          nav({ name: "characters" });
+        }}
+        onCancel={() => nav({ name: "characters-create" })}
+      />;
+      break;
     case "game":
       if (gameState && gameScenario) {
         screen = <GameScreen colors={c}
@@ -255,14 +308,18 @@ export default function App() {
       screen = <SettingsScreen colors={c} theme={theme} />;
       break;
     case "characters":
-      screen = <CharactersScreen colors={c} />;
+      screen = <CharactersScreen colors={c}
+        characters={characters}
+        onAdd={() => nav({ name: "characters-create" })}
+        onDelete={async (id: string) => { await removeCharacter(id); setCharacters(await loadCharacters()); }}
+      />;
       break;
     case "level-editor-list":
       screen = <LevelEditorList colors={c}
         levels={levels}
         onRefresh={async () => setLevels(await loadLevels())}
-        onEdit={(id) => nav({ name: "level-editor", levelId: id })}
-        onPlay={(lvl) => startFreeplayCustom(lvl.id, [], true, lvl.id)}
+        onEdit={(id: string) => nav({ name: "level-editor", levelId: id })}
+        onPlay={(lvl: CustomLevel) => nav({ name: "custom-level-char-choice", customId: lvl.id })}
       />;
       break;
     case "level-editor":
@@ -282,7 +339,7 @@ export default function App() {
       <BottomTabs colors={c} route={route} onNav={nav} onMore={() => setMoreOpen(v => !v)} moreActive={moreOpen} />
       <MoreDropdown
         visible={moreOpen} onClose={() => setMoreOpen(false)} colors={c}
-        onPick={(where) => { setMoreOpen(false); nav({ name: where as any }); }}
+        onPick={(where: string) => { setMoreOpen(false); nav({ name: where as any }); }}
       />
     </SafeAreaView>
   );
@@ -296,8 +353,8 @@ function BottomTabs({ colors, route, onNav, onMore, moreActive }: any) {
   const items = [
     { key: "home", label: "Home", icon: "home", active: isActive(["home"]), onPress: () => onNav({ name: "home" }) },
     { key: "learn", label: "Learn", icon: "book-open", active: isActive(["learn", "learn-detail"]), onPress: () => onNav({ name: "learn" }) },
-    { key: "play", label: "Play", icon: "play-circle", active: isActive(["play", "play-character-select", "game", "outcome", "level-editor", "level-editor-list"]), onPress: () => onNav({ name: "play" }) },
-    { key: "more", label: "More", icon: "more-horizontal", active: moreActive || isActive(["tools", "progress", "settings", "characters"]), onPress: onMore },
+    { key: "play", label: "Play", icon: "play-circle", active: isActive(["play", "campaign-char-choice", "custom-level-char-choice", "game", "outcome", "level-editor", "level-editor-list"]), onPress: () => onNav({ name: "play" }) },
+    { key: "more", label: "More", icon: "more-horizontal", active: moreActive || isActive(["tools", "progress", "settings", "characters", "characters-create", "characters-create-custom"]), onPress: onMore },
   ];
   return (
     <View style={[styles.tabBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
@@ -482,8 +539,8 @@ function LearnDetailScreen({ colors, scenarioId, onBack }: any) {
 // ============================================================
 // PLAY (with Campaign / Freeplay / Level Design sub-tabs)
 // ============================================================
-function PlayScreen({ colors, levels, onCampaign, onFreeplay, onCustomPlay, onCustomPlayWithChar, onOpenLevelDesign }: any) {
-  const [mode, setMode] = useState<"campaign" | "freeplay" | "design">("campaign");
+function PlayScreen({ colors, levels, onCampaign, onCustomPlay, onOpenLevelDesign }: any) {
+  const [mode, setMode] = useState<"campaign" | "design">("campaign");
 
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
@@ -495,28 +552,16 @@ function PlayScreen({ colors, levels, onCampaign, onFreeplay, onCustomPlay, onCu
 
       <View style={[styles.segmented, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <SegmentedItem colors={colors} active={mode === "campaign"} label="Campaign" onPress={() => setMode("campaign")} />
-        <SegmentedItem colors={colors} active={mode === "freeplay"} label="Freeplay" onPress={() => setMode("freeplay")} />
         <SegmentedItem colors={colors} active={mode === "design"} label="Level Design" onPress={() => setMode("design")} />
       </View>
 
       {mode === "campaign" && (
         <>
           <Text style={[styles.modeHint, { color: colors.mutedForeground }]}>
-            Preset scenarios with fixed characters. Each is 10–14 decisions with branching consequences.
+            Preset scenarios. Pick one, then choose whether to play as the default character or one of your saved ones.
           </Text>
-          {SCENARIOS.map((sc, i) => (
+          {SCENARIOS.map((sc) => (
             <ScenarioPlayCard key={sc.id} colors={colors} scenario={sc} onPress={() => onCampaign(sc.id)} />
-          ))}
-        </>
-      )}
-
-      {mode === "freeplay" && (
-        <>
-          <Text style={[styles.modeHint, { color: colors.mutedForeground }]}>
-            Pick a scenario, then design a character. Modifiers (record, immigration, family, health, finances) shift outcomes and starting stats.
-          </Text>
-          {SCENARIOS.map((sc, i) => (
-            <ScenarioPlayCard key={sc.id} colors={colors} scenario={sc} onPress={() => onFreeplay(sc.id)} />
           ))}
         </>
       )}
@@ -524,7 +569,7 @@ function PlayScreen({ colors, levels, onCampaign, onFreeplay, onCustomPlay, onCu
       {mode === "design" && (
         <>
           <Text style={[styles.modeHint, { color: colors.mutedForeground }]}>
-            Build your own scenarios with the same engine that runs the campaigns. Custom levels accept freeplay modifiers.
+            Build your own scenarios with the same engine that runs the campaigns. Your saved characters work on them too.
           </Text>
           <Pressable
             style={[styles.bigCta, { backgroundColor: colors.primary }]}
@@ -545,7 +590,6 @@ function PlayScreen({ colors, levels, onCampaign, onFreeplay, onCustomPlay, onCu
                 <Text style={[styles.trackDesc, { color: colors.mutedForeground, marginTop: 6 }]} numberOfLines={2}>{lvl.desc}</Text>
                 <View style={{ flexDirection: "row", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
                   <SmallBtn colors={colors} kind="primary" label="▶ Play" onPress={() => onCustomPlay(lvl)} />
-                  <SmallBtn colors={colors} kind="secondary" label="▶ Play with character" onPress={() => onCustomPlayWithChar(lvl)} />
                 </View>
               </View>
             ))
@@ -603,59 +647,6 @@ function SmallBtn({ colors, kind, label, onPress }: any) {
 // ============================================================
 // CHARACTER SELECT (Freeplay modifiers)
 // ============================================================
-function CharacterSelectScreen({ colors, scenarioId, isCustom, customId, levels, onBegin, onCancel }: any) {
-  const [selections, setSelections] = useState<Record<string, string>>({});
-  const scName = isCustom
-    ? levels.find((l: CustomLevel) => l.id === customId)?.name || "Custom Level"
-    : SCENARIO_MAP[scenarioId]?.name || "Scenario";
-  const allPicked = modifierGroups.every(g => selections[g.id]);
-
-  return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: 120 }}>
-      <Pressable onPress={onCancel} style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-        <Feather name="chevron-left" size={20} color={colors.primary} />
-        <Text style={{ color: colors.primary, fontFamily: "Inter_600SemiBold", marginLeft: 4 }}>Cancel</Text>
-      </Pressable>
-      <Text style={[styles.eyebrow, { color: colors.primary }]}>FREEPLAY · {scName.toUpperCase()}</Text>
-      <Text style={[styles.h1, { color: colors.foreground }]}>Build your character</Text>
-      <Text style={[styles.sub, { color: colors.mutedForeground, marginBottom: 20 }]}>
-        Your answers shift starting stats, passive drains, and law-heat multipliers. Pick one in each category.
-      </Text>
-
-      {modifierGroups.map(g => (
-        <View key={g.id} style={[styles.setupCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.setupLabel, { color: colors.foreground }]}>{g.label}</Text>
-          <Text style={[styles.setupQ, { color: colors.mutedForeground }]}>{g.q}</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            {g.opts.map(o => {
-              const selected = selections[g.id] === o.val;
-              return (
-                <Pressable
-                  key={o.val}
-                  onPress={() => setSelections({ ...selections, [g.id]: o.val })}
-                  style={[styles.setupOpt, { borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.primarySoft : colors.card }]}
-                >
-                  <Text style={[styles.setupOptT, { color: colors.foreground }]}>{o.t}</Text>
-                  <Text style={[styles.setupOptD, { color: colors.mutedForeground }]}>{o.d}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-      ))}
-
-      <Pressable
-        disabled={!allPicked}
-        onPress={() => onBegin(modifierGroups.map(g => selections[g.id]))}
-        style={[styles.bigCta, { backgroundColor: allPicked ? colors.primary : colors.muted, marginTop: 16 }]}
-      >
-        <Feather name="arrow-right" size={20} color={allPicked ? "white" : colors.mutedForeground} />
-        <Text style={[styles.bigCtaText, { color: allPicked ? "white" : colors.mutedForeground }]}>Begin</Text>
-      </Pressable>
-    </ScrollView>
-  );
-}
-
 // ============================================================
 // GAME
 // ============================================================
@@ -745,8 +736,8 @@ function FeedbackBanner({ colors, feedback }: any) {
   const d = feedback.delta || {};
   const parts: string[] = [];
   if (d.money) parts.push(`${d.money >= 0 ? "+" : ""}$${Math.round(d.money)}`);
-  if (d.health) parts.push(`${d.health >= 0 ? "+" : ""}${d.health} Health`);
-  if (d.wellbeing) parts.push(`${d.wellbeing >= 0 ? "+" : ""}${d.wellbeing} Wellbeing`);
+  if (d.health) parts.push(`${d.health >= 0 ? "+" : ""}${Math.round(d.health)} Health`);
+  if (d.wellbeing) parts.push(`${d.wellbeing >= 0 ? "+" : ""}${Math.round(d.wellbeing)} Wellbeing`);
   if (d.law) parts.push(`${d.law >= 0 ? "+" : ""}${Math.round(d.law)} Law`);
   return (
     <View style={[styles.feedback, { backgroundColor: bg, borderColor: fg }]}>
@@ -777,7 +768,7 @@ function OutcomeScreen({ colors, state, scenario, eduPack, onHome, onPlay }: any
         <Text style={[styles.endingTitle, { color: fg }]}>{ending?.title || "Game Over"}</Text>
         <Text style={[styles.endingBody, { color: colors.foreground }]}>{endingText}</Text>
         <Text style={[styles.endingMeta, { color: colors.mutedForeground }]}>
-          Health: {state.health} · Wellbeing: {state.wellbeing} · Cash: ${Math.round(state.money).toLocaleString()} · Law: {Math.round(state.law)}%
+          Health: {Math.round(state.health)} · Wellbeing: {Math.round(state.wellbeing)} · Cash: ${Math.round(state.money).toLocaleString()} · Law: {Math.round(state.law)}%
         </Text>
       </View>
 
@@ -916,35 +907,237 @@ function SettingsScreen({ colors, theme }: any) {
   );
 }
 
-function CharactersScreen({ colors }: any) {
-  // Show example modifier presets the user can inspect
-  const presets = [
-    { name: "First-Gen Student", mods: ["criminal_record", "citizen", "first_gen_student", "no_safety_net", "broke", "healthy", "anxiety", "finance_novice"] },
-    { name: "F-1 International", mods: ["clean_record", "f1_visa", "family_support", "modest_savings", "healthy", "mentally_well", "traditional_student", "finance_savvy"] },
-    { name: "Working Parent", mods: ["clean_record", "citizen", "caretaker", "paycheck_to_paycheck", "chronic_condition", "depression_history", "working_full_time", "scammed_before"] },
-    { name: "Returning Adult", mods: ["clean_record", "citizen", "family_support", "modest_savings", "healthy", "mentally_well", "returning_adult", "finance_savvy"] },
-  ];
+function CharactersScreen({ colors, characters, onAdd, onDelete }: any) {
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
       <Text style={[styles.eyebrow, { color: colors.primary }]}>CHARACTERS</Text>
-      <Text style={[styles.h1, { color: colors.foreground }]}>Preset profiles</Text>
+      <Text style={[styles.h1, { color: colors.foreground }]}>Your characters</Text>
       <Text style={[styles.sub, { color: colors.mutedForeground, marginBottom: 20 }]}>
-        Example character archetypes you can recreate in Freeplay. Each combination of modifiers changes the game.
+        Save character profiles you can reuse across campaigns and custom levels. Modifiers shift starting stats, passive drains, and law-heat multipliers.
       </Text>
-      {presets.map(p => (
-        <View key={p.name} style={[styles.setupCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.setupLabel, { color: colors.foreground }]}>{p.name}</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
-            {p.mods.map(m => (
-              <View key={m} style={[styles.chip, { backgroundColor: colors.warningSoft }]}>
-                <Text style={{ color: colors.warning, fontSize: 11, fontFamily: "Inter_600SemiBold" }}>
-                  {modifierDefs[m]?.name || m}
+
+      {characters.length === 0 ? (
+        <View style={[styles.setupCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.setupQ, { color: colors.mutedForeground }]}>
+            No saved characters yet. Tap below to make your first one.
+          </Text>
+        </View>
+      ) : (
+        characters.map((c: SavedCharacter) => (
+          <View key={c.id} style={[styles.setupCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.setupLabel, { color: colors.foreground }]}>{c.name}</Text>
+                <Text style={[styles.trackWho, { color: colors.mutedForeground }]}>
+                  {c.presetKey === "custom" ? "CUSTOM" : (CHARACTER_PRESETS.find(p => p.key === c.presetKey)?.name.toUpperCase() || "PRESET")}
                 </Text>
               </View>
-            ))}
+              <Pressable onPress={() => onDelete(c.id)} hitSlop={10}>
+                <Feather name="trash-2" size={18} color={colors.mutedForeground} />
+              </Pressable>
+            </View>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+              {c.modifiers
+                .filter(m => !modifierDefs[m]?.neutral)
+                .map(m => (
+                  <View key={m} style={[styles.chip, { backgroundColor: colors.warningSoft }]}>
+                    <Text style={{ color: colors.warning, fontSize: 11, fontFamily: "Inter_600SemiBold" }}>
+                      {modifierDefs[m]?.name || m}
+                    </Text>
+                  </View>
+                ))}
+            </View>
+          </View>
+        ))
+      )}
+
+      <Pressable style={[styles.bigCta, { backgroundColor: colors.primary, marginTop: 12 }]} onPress={onAdd}>
+        <Feather name="plus" size={20} color="white" />
+        <Text style={styles.bigCtaText}>Add Character</Text>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
+// ============================================================
+// CHARACTER CREATOR (preset picker — 5 cards including Custom)
+// ============================================================
+function CharacterCreatorScreen({ colors, existing, onPickPreset, onCustom, onCancel }: any) {
+  return (
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: 120 }}>
+      <Pressable onPress={onCancel} style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
+        <Feather name="chevron-left" size={20} color={colors.primary} />
+        <Text style={{ color: colors.primary, fontFamily: "Inter_600SemiBold", marginLeft: 4 }}>Cancel</Text>
+      </Pressable>
+      <Text style={[styles.eyebrow, { color: colors.primary }]}>NEW CHARACTER</Text>
+      <Text style={[styles.h1, { color: colors.foreground }]}>Pick a starting point</Text>
+      <Text style={[styles.sub, { color: colors.mutedForeground, marginBottom: 20 }]}>
+        Four common archetypes, or build one from scratch. Custom lets you pick every modifier yourself.
+      </Text>
+
+      {CHARACTER_PRESETS.map(p => (
+        <Pressable key={p.key} onPress={() => onPickPreset(p.key)} style={[styles.setupCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.setupLabel, { color: colors.foreground }]}>{p.name}</Text>
+          <Text style={[styles.trackDesc, { color: colors.mutedForeground, marginTop: 4 }]}>{p.desc}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+            {p.mods
+              .filter(m => !modifierDefs[m]?.neutral)
+              .map(m => (
+                <View key={m} style={[styles.chip, { backgroundColor: colors.warningSoft }]}>
+                  <Text style={{ color: colors.warning, fontSize: 11, fontFamily: "Inter_600SemiBold" }}>
+                    {modifierDefs[m]?.name || m}
+                  </Text>
+                </View>
+              ))}
+          </View>
+        </Pressable>
+      ))}
+
+      <Pressable onPress={onCustom} style={[styles.setupCard, { backgroundColor: colors.primarySoft, borderColor: colors.primary, borderWidth: 2 }]}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <Feather name="sliders" size={22} color={colors.primary} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.setupLabel, { color: colors.primary }]}>Custom</Text>
+            <Text style={[styles.trackDesc, { color: colors.primary, marginTop: 2 }]}>
+              Pick every modifier yourself. 8 categories, full control.
+            </Text>
+          </View>
+          <Feather name="chevron-right" size={20} color={colors.primary} />
+        </View>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
+// ============================================================
+// CUSTOM CHARACTER CREATOR (name input + full 8-group modifier picker)
+// ============================================================
+function CustomCharacterCreatorScreen({ colors, existing, onSave, onCancel }: any) {
+  const [name, setName] = useState<string>(nextCharacterName(existing || [], "Custom"));
+  const [selections, setSelections] = useState<Record<string, string>>({});
+  const allPicked = modifierGroups.every(g => selections[g.id]);
+
+  return (
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: 120 }}>
+      <Pressable onPress={onCancel} style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
+        <Feather name="chevron-left" size={20} color={colors.primary} />
+        <Text style={{ color: colors.primary, fontFamily: "Inter_600SemiBold", marginLeft: 4 }}>Back</Text>
+      </Pressable>
+      <Text style={[styles.eyebrow, { color: colors.primary }]}>CUSTOM CHARACTER</Text>
+      <Text style={[styles.h1, { color: colors.foreground }]}>Build your character</Text>
+      <Text style={[styles.sub, { color: colors.mutedForeground, marginBottom: 20 }]}>
+        Pick one option in each category. Your answers shift starting stats and how likely things go right or wrong.
+      </Text>
+
+      <View style={[styles.setupCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <Text style={[styles.setupLabel, { color: colors.foreground }]}>Name</Text>
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          placeholderTextColor={colors.mutedForeground}
+          style={{
+            backgroundColor: colors.muted, color: colors.foreground,
+            borderWidth: 1, borderColor: colors.border, borderRadius: 10,
+            padding: 10, fontSize: 15, fontFamily: "Inter_500Medium", marginTop: 6,
+          }}
+        />
+      </View>
+
+      {modifierGroups.map(g => (
+        <View key={g.id} style={[styles.setupCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.setupLabel, { color: colors.foreground }]}>{g.label}</Text>
+          <Text style={[styles.setupQ, { color: colors.mutedForeground }]}>{g.q}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {g.opts.map(o => {
+              const selected = selections[g.id] === o.val;
+              return (
+                <Pressable
+                  key={o.val}
+                  onPress={() => setSelections({ ...selections, [g.id]: o.val })}
+                  style={[styles.setupOpt, { borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.primarySoft : colors.card }]}
+                >
+                  <Text style={[styles.setupOptT, { color: colors.foreground }]}>{o.t}</Text>
+                  <Text style={[styles.setupOptD, { color: colors.mutedForeground }]}>{o.d}</Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
       ))}
+
+      <Pressable
+        disabled={!allPicked}
+        onPress={() => onSave(name.trim(), modifierGroups.map(g => selections[g.id]))}
+        style={[styles.bigCta, { backgroundColor: allPicked ? colors.primary : colors.muted, marginTop: 16 }]}
+      >
+        <Feather name="check" size={20} color={allPicked ? "white" : colors.mutedForeground} />
+        <Text style={[styles.bigCtaText, { color: allPicked ? "white" : colors.mutedForeground }]}>Save Character</Text>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
+// ============================================================
+// CHARACTER PICK (shown before launching a scenario — default or saved)
+// ============================================================
+function CharacterPickScreen({ colors, title, subtitle, defaultCharName, characters, onDefault, onPickCharacter, onCreateFirst, onCancel }: any) {
+  return (
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: 120 }}>
+      <Pressable onPress={onCancel} style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
+        <Feather name="chevron-left" size={20} color={colors.primary} />
+        <Text style={{ color: colors.primary, fontFamily: "Inter_600SemiBold", marginLeft: 4 }}>Cancel</Text>
+      </Pressable>
+      <Text style={[styles.eyebrow, { color: colors.primary }]}>{String(title).toUpperCase()}</Text>
+      <Text style={[styles.h1, { color: colors.foreground }]}>{subtitle}</Text>
+      <Text style={[styles.sub, { color: colors.mutedForeground, marginBottom: 20 }]}>
+        Play as the scenario's default character or bring in one you've made.
+      </Text>
+
+      <Pressable onPress={onDefault} style={[styles.setupCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <View style={[styles.toolIcon, { backgroundColor: colors.secondarySoft }]}>
+            <Feather name="user" size={22} color={colors.secondary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.setupLabel, { color: colors.foreground }]}>Default</Text>
+            <Text style={[styles.trackDesc, { color: colors.mutedForeground, marginTop: 2 }]}>
+              Play as {defaultCharName}. No modifiers, scenario as written.
+            </Text>
+          </View>
+          <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
+        </View>
+      </Pressable>
+
+      <Text style={[styles.sectionEyebrow, { color: colors.mutedForeground }]}>YOUR CHARACTERS ({characters.length})</Text>
+      {characters.length === 0 ? (
+        <View style={[styles.setupCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.setupQ, { color: colors.mutedForeground, marginBottom: 10 }]}>
+            You haven't made any characters yet. Create one to use modifiers on this scenario.
+          </Text>
+          <Pressable style={[styles.bigCta, { backgroundColor: colors.primary }]} onPress={onCreateFirst}>
+            <Feather name="plus" size={20} color="white" />
+            <Text style={styles.bigCtaText}>Create a Character</Text>
+          </Pressable>
+        </View>
+      ) : (
+        characters.map((ch: SavedCharacter) => (
+          <Pressable key={ch.id} onPress={() => onPickCharacter(ch)} style={[styles.setupCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.setupLabel, { color: colors.foreground }]}>{ch.name}</Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+              {ch.modifiers
+                .filter(m => !modifierDefs[m]?.neutral)
+                .slice(0, 8)
+                .map(m => (
+                  <View key={m} style={[styles.chip, { backgroundColor: colors.warningSoft }]}>
+                    <Text style={{ color: colors.warning, fontSize: 11, fontFamily: "Inter_600SemiBold" }}>
+                      {modifierDefs[m]?.name || m}
+                    </Text>
+                  </View>
+                ))}
+            </View>
+          </Pressable>
+        ))
+      )}
     </ScrollView>
   );
 }
@@ -1075,7 +1268,7 @@ function LevelEditorScreen({ colors, levelId, onDone }: any) {
                   colors={colors}
                   scene={editingScene}
                   allScenes={lvl.scenes}
-                  onChange={(updated) => {
+                  onChange={(updated: CustomLevel["scenes"][number]) => {
                     const scenes = lvl.scenes.map(s => s.id === updated.id ? updated : s);
                     setLvl({ ...lvl, scenes });
                   }}

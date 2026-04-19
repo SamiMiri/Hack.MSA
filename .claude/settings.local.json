@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(mkdir -p \"C:/Hackathons/HackMSA/replit_v2\")",
-      "Bash(unzip -oq \"C:/Users/ihsan/Downloads/Hack.MSA-main \\(1\\).zip\")"
+      "Bash(unzip -oq \"C:/Users/ihsan/Downloads/Hack.MSA-main \\(1\\).zip\")",
+      "Bash(npx -y typescript@5.6.0 --noEmit -p tsconfig.json)",
+      "Bash(export PATH=\"/c/Program Files/nodejs:$PATH\")",
+      "Bash(npx -y typescript@5.6.0 --noEmit --jsx react-native --strict --esModuleInterop --moduleResolution node --target es2020 --module esnext --skipLibCheck App.tsx)",
+      "Bash(npx -y typescript@5.9 --noEmit --jsx react-native --esModuleInterop --moduleResolution node --target es2020 --module esnext --skipLibCheck App.tsx)",
+      "Bash(npm view *)",
+      "Bash(npm install *)",
+      "Bash(./node_modules/.bin/tsc --noEmit --jsx react-native --esModuleInterop --moduleResolution node --target es2020 --module esnext --skipLibCheck --strict App.tsx)"
     ]
   }
 }

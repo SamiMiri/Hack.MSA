@@ -142,26 +142,36 @@ export function applyStartingModifiers(s: GameState) {
   if (m.has("working_full_time")) s.money += 600;
   if (m.has("homeless_history")) s.money -= 300;
   if (m.has("finance_savvy")) s.wellbeing += 5;
-  s.health = Math.max(1, Math.min(100, s.health));
-  s.wellbeing = Math.max(1, Math.min(100, s.wellbeing));
-  s.money = Math.max(0, s.money);
+  s.health = Math.round(Math.max(1, Math.min(100, s.health)));
+  s.wellbeing = Math.round(Math.max(1, Math.min(100, s.wellbeing)));
+  s.money = Math.max(0, Math.round(s.money));
 }
 
 export function applyPassiveDrains(s: GameState) {
   const m = s.modifiers;
+  // Integer drains apply straight to the stat.
   if (m.has("no_safety_net")) s.wellbeing -= 1;
   if (m.has("caretaker")) { s.money -= 10; s.wellbeing -= 1; }
-  if (m.has("estranged")) s.wellbeing -= 0.5;
-  if (m.has("student_debt")) s.wellbeing -= 0.5;
-  if (m.has("chronic_condition")) s.health -= 0.5;
-  if (m.has("disability")) s.health -= 0.3;
-  if (m.has("uninsured_chronic")) s.health -= 0.8;
-  if (m.has("anxiety")) s.wellbeing -= 0.5;
-  if (m.has("depression_history")) s.wellbeing -= 0.4;
-  if (m.has("neurodivergent")) s.wellbeing -= 0.2;
-  if (m.has("first_gen_student")) s.wellbeing -= 0.3;
-  if (m.has("working_full_time")) s.wellbeing -= 0.3;
-  if (m.has("homeless_history")) s.wellbeing -= 0.5;
-  s.health = Math.max(0, Math.round(s.health * 10) / 10);
-  s.wellbeing = Math.max(0, Math.round(s.wellbeing * 10) / 10);
+  // Fractional drains accumulate in debt buffers; whole units get applied here.
+  let hDebt = (s.healthDebt || 0);
+  let wDebt = (s.wellbeingDebt || 0);
+  if (m.has("estranged")) wDebt += 0.5;
+  if (m.has("student_debt")) wDebt += 0.5;
+  if (m.has("chronic_condition")) hDebt += 0.5;
+  if (m.has("disability")) hDebt += 0.3;
+  if (m.has("uninsured_chronic")) hDebt += 0.8;
+  if (m.has("anxiety")) wDebt += 0.5;
+  if (m.has("depression_history")) wDebt += 0.4;
+  if (m.has("neurodivergent")) wDebt += 0.2;
+  if (m.has("first_gen_student")) wDebt += 0.3;
+  if (m.has("working_full_time")) wDebt += 0.3;
+  if (m.has("homeless_history")) wDebt += 0.5;
+  const hSteps = Math.floor(hDebt);
+  const wSteps = Math.floor(wDebt);
+  s.health -= hSteps;
+  s.wellbeing -= wSteps;
+  s.healthDebt = Math.round((hDebt - hSteps) * 100) / 100; // keep at 2-decimal precision
+  s.wellbeingDebt = Math.round((wDebt - wSteps) * 100) / 100;
+  s.health = Math.max(0, Math.round(s.health));
+  s.wellbeing = Math.max(0, Math.round(s.wellbeing));
 }

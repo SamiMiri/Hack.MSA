@@ -48,6 +48,12 @@ export interface GameState {
   wellbeing: number;
   money: number;
   law: number;
+  // Fractional drain accumulators — held internally so displayed stats stay as whole numbers
+  // even when modifiers drain 0.3 / 0.5 / 0.8 per turn. Applied to the integer stat only
+  // once they cross a whole number threshold.
+  healthDebt: number;
+  wellbeingDebt: number;
+  lawDebt: number;
   flags: Set<string>;
   pending: { turn: number; sceneId: string }[];
   turn: number;
