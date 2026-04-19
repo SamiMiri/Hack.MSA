@@ -19,10 +19,10 @@ import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
 const AVATARS: { id: number; source: ImageSourcePropType; label: string }[] = [
-  { id: 1, source: require("../../assets/avatar1.jpg"), label: "IRS Chaos" },
+  { id: 1, source: require("../../assets/avatar1.jpg"), label: "Tax Evasion" },
   { id: 2, source: require("../../assets/avatar2.jpg"), label: "IRS Agent" },
-  { id: 3, source: require("../../assets/avatar3.jpg"), label: "Briefcase" },
-  { id: 4, source: require("../../assets/avatar4.jpg"), label: "Money Bag" },
+  { id: 3, source: require("../../assets/avatar3.jpg"), label: "3T" },
+  { id: 4, source: require("../../assets/avatar4.jpg"), label: "A Job!" },
 ];
 
 const STAGE_LABELS: Record<string, string> = {
@@ -377,11 +377,14 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 14,
     justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
     marginBottom: 24,
+    paddingHorizontal: 8,
   },
   avatarGridItem: {
-    width: 136,
-    height: 136,
+    width: 128,
+    height: 128,
     borderRadius: 20,
     overflow: "hidden",
     position: "relative",
