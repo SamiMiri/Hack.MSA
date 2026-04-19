@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+
+import { useNav } from "@/context/NavigationContext";
 
 import { CharacterOption, CHARACTERS } from "@/data/characters";
 import { SceneChoice, Scenario, SCENARIOS } from "@/data/scenarios";
@@ -50,6 +51,7 @@ export function useGame() {
 }
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
+  const { navigate, replace, setActiveTab } = useNav();
   const [gamePhase, setGamePhase] = useState<GamePhase>("playing");
   const [currentScenario, setCurrentScenario] = useState<Scenario | null>(null);
   const [currentSceneId, setCurrentSceneId] = useState<string>("");
@@ -125,8 +127,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const chooseScenario = useCallback((scenarioId: string) => {
     setPendingScenarioId(scenarioId);
-    router.push("/simulator/character-select");
-  }, []);
+    navigate({ name: "sim-character-select" });
+  }, [navigate]);
 
   const confirmCharacter = useCallback((characterId: string) => {
     const scenarioId = pendingScenarioIdRef.current;
@@ -154,8 +156,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setSelectedCharacter(char);
     setGamePhase("playing");
 
-    router.push("/simulator/game");
-  }, []);
+    navigate({ name: "sim-game" });
+  }, [navigate]);
 
   const makeChoice = useCallback((choice: SceneChoice, sceneTitle: string) => {
     const currentFlags = new Set(flagsRef.current);
@@ -266,7 +268,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         }
         return prev;
       });
-      router.push("/simulator/outcome");
+      navigate({ name: "sim-outcome" });
     } else {
       setGamePhase("playing");
     }
@@ -277,16 +279,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setCurrentSceneId("");
     setPendingFeedback(null);
     setLastDeltas(null);
-    router.replace("/(tabs)/simulate");
-  }, []);
+    replace({ name: "tabs" });
+    setActiveTab("simulate");
+  }, [replace, setActiveTab]);
 
   const replayScenario = useCallback(() => {
     const scenarioId = pendingScenarioIdRef.current ?? currentScenarioRef.current?.id;
     if (scenarioId) {
       setPendingScenarioId(scenarioId);
-      router.replace("/simulator/character-select");
+      replace({ name: "sim-character-select" });
     }
-  }, []);
+  }, [replace]);
 
   return (
     <GameContext.Provider

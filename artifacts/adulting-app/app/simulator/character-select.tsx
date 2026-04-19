@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
 import React, { useState } from "react";
+
+import { useNav } from "@/context/NavigationContext";
 import {
   Platform,
   Pressable,
@@ -21,6 +22,7 @@ import { useColors } from "@/hooks/useColors";
 const PRIMARY = "#7C3AED";
 
 export default function CharacterSelectScreen() {
+  const { goBack } = useNav();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { pendingScenarioId, confirmCharacter } = useGame();
@@ -45,7 +47,7 @@ export default function CharacterSelectScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: topInset + 8 }]}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           style={styles.backBtn}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           testID="button-back"

@@ -29,12 +29,17 @@ pnpm workspace monorepo using TypeScript. Three artifacts for young adults (18-2
   - Progress tracking with milestones
   - Deadlines/reminders panel
 - **State**: AsyncStorage (no backend)
+- **Navigation**: Custom state-machine (NavigationContext), NOT Expo Router — fully replaces file-system routing to eliminate iOS "screen doesn't exist" bug
 - **Key files**:
+  - `context/NavigationContext.tsx` — state-machine router (AppScreen union type, navigate/replace/goBack/setActiveTab)
+  - `context/AppContext.tsx` — global state (progress, budget, checklists); exposes `appLoaded` flag
+  - `context/GameContext.tsx` — simulator game state; uses NavigationContext instead of expo-router
+  - `components/TabsContainer.tsx` — custom tab bar + tab content switcher (no Expo Router Tabs)
+  - `app/_layout.tsx` — root: renders ScreenSwitcher via NavigationProvider; no Stack/Slot
   - `data/tracks.ts` — all lesson content and data structures
   - `data/onboarding.ts` — onboarding questions
-  - `context/AppContext.tsx` — global state (progress, budget, checklists)
-  - `app/(tabs)/index.tsx` — home dashboard
-  - `app/(tabs)/learn.tsx` — track browser
+  - `app/(tabs)/index.tsx` — home dashboard (component, not a route)
+  - `app/(tabs)/learn.tsx` — track browser (component, not a route)
   - `app/(tabs)/tools.tsx` — Budget Builder, Lease Checklist, Tax Doc Tracker
 
 ### Adulting Simulator (`artifacts/adulting-simulator`)

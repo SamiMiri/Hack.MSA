@@ -46,6 +46,7 @@ export interface LeaseCheckItem {
 }
 
 interface AppContextType {
+  appLoaded: boolean;
   onboardingComplete: boolean;
   resetApp: () => Promise<void>;
   profile: UserProfile | null;
@@ -161,6 +162,7 @@ const STORAGE_KEYS = {
 };
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [appLoaded, setAppLoaded] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [completedLessons, setCompletedLessons] = useState<LessonProgress[]>([]);
@@ -193,6 +195,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (savedCoins) setCoins(parseInt(savedCoins, 10));
       if (savedTracks) setUnlockedTracks(JSON.parse(savedTracks));
       if (savedScenarios) setUnlockedScenarios(JSON.parse(savedScenarios));
+      setAppLoaded(true);
     })();
   }, []);
 
@@ -325,6 +328,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider
       value={{
+        appLoaded,
         onboardingComplete,
         resetApp,
         profile,

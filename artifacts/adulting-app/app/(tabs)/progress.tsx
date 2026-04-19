@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
 import React from "react";
+
+import { useNav } from "@/context/NavigationContext";
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,6 +20,7 @@ const MILESTONES = [
 export default function ProgressScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { navigate, setActiveTab } = useNav();
   const { completedLessons, getTrackProgress, coins } = useApp();
 
   const topInset = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
@@ -139,7 +141,7 @@ export default function ProgressScreen() {
             return (
               <TouchableOpacity
                 key={track.id}
-                onPress={() => router.push(`/track/${track.id}` as any)}
+                onPress={() => navigate({ name: "track", trackId: track.id })}
                 style={[styles.trackRow, { backgroundColor: colors.card, borderColor: colors.border }]}
               >
                 <View style={[styles.trackIcon, { backgroundColor: track.color + "18" }]}>
@@ -215,7 +217,7 @@ export default function ProgressScreen() {
               Complete your first lesson to see progress here
             </Text>
             <TouchableOpacity
-              onPress={() => router.push("/(tabs)/learn")}
+              onPress={() => setActiveTab("learn")}
               style={[styles.emptyButton, { backgroundColor: colors.primary }]}
             >
               <Text style={styles.emptyButtonText}>Start Learning</Text>

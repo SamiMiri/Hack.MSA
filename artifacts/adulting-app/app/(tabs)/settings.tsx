@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
 import React, { useState } from "react";
+
+import { useNav } from "@/context/NavigationContext";
 import {
   Alert,
   Platform,
@@ -80,6 +81,7 @@ function SettingsRow({
 }
 
 export default function SettingsScreen() {
+  const { navigate } = useNav();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { profile, coins, completedLessons, resetApp } = useApp();
@@ -116,7 +118,7 @@ export default function SettingsScreen() {
   async function doReset() {
     setResetting(true);
     await resetApp();
-    router.replace("/onboarding");
+    navigate({ name: "onboarding" });
   }
 
   return (

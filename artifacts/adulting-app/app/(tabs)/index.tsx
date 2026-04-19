@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import { Redirect, router } from "expo-router";
 import React from "react";
+
+import { useNav } from "@/context/NavigationContext";
 import {
   Platform,
   ScrollView,
@@ -25,11 +26,8 @@ const DEADLINES = [
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { profile, getTrackProgress, completedLessons, onboardingComplete } = useApp();
-
-  if (!onboardingComplete) {
-    return <Redirect href="/start" />;
-  }
+  const { navigate, setActiveTab } = useNav();
+  const { profile, getTrackProgress, completedLessons } = useApp();
 
   const topInset = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const bottomInset = Platform.OS === "web" ? Math.max(insets.bottom, 34) : insets.bottom;
@@ -87,7 +85,7 @@ export default function HomeScreen() {
       <View style={styles.section}>
         <Animated.View entering={FadeInDown.delay(150).springify()} style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Skill Tracks</Text>
-          <TouchableOpacity onPress={() => router.push("/(tabs)/learn")}>
+          <TouchableOpacity onPress={() => setActiveTab("learn")}>
             <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -96,7 +94,7 @@ export default function HomeScreen() {
             <TrackCard
               track={track}
               progress={getTrackProgress(track.id, track.lessonsCount)}
-              onPress={() => router.push(`/track/${track.id}` as any)}
+              onPress={() => navigate({ name: "track", trackId: track.id })}
             />
           </Animated.View>
         ))}
@@ -131,7 +129,7 @@ export default function HomeScreen() {
       <Animated.View entering={FadeInDown.delay(440).springify()} style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Quick Tools</Text>
-          <TouchableOpacity onPress={() => router.push("/(tabs)/tools")}>
+          <TouchableOpacity onPress={() => setActiveTab("tools")}>
             <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
           </TouchableOpacity>
         </View>
@@ -143,7 +141,7 @@ export default function HomeScreen() {
           ].map((tool) => (
             <TouchableOpacity
               key={tool.label}
-              onPress={() => router.push(tool.tab as any)}
+              onPress={() => setActiveTab("tools")}
               style={[styles.toolCard, { backgroundColor: colors.card, borderColor: colors.border }]}
             >
               <View style={[styles.toolIcon, { backgroundColor: tool.color + "18" }]}>

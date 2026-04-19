@@ -6,39 +6,60 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
+import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { AppProvider } from "@/context/AppContext";
+import { AppProvider, useApp } from "@/context/AppContext";
 import { GameProvider } from "@/context/GameContext";
+import { AppScreen, NavigationProvider, useNav } from "@/context/NavigationContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+
+import CharacterSelectScreen from "@/app/simulator/character-select";
+import GameScreen from "@/app/simulator/game";
+import OutcomeScreen from "@/app/simulator/outcome";
+import TabsContainer from "@/components/TabsContainer";
+import OnboardingScreen from "./onboarding";
+import StartScreen from "./start";
+import TrackScreen from "./track/[id]";
+import LessonScreen from "./lesson/[trackId]/[lessonId]";
 
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
-function RootLayoutNav() {
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="start" options={{ headerShown: false, gestureEnabled: false }} />
-      <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="track/[id]" options={{ headerShown: false, presentation: "card" }} />
-      <Stack.Screen
-        name="lesson/[trackId]/[lessonId]"
-        options={{ headerShown: false, presentation: "modal" }}
-      />
-      <Stack.Screen name="simulator" options={{ headerShown: false }} />
-    </Stack>
-  );
+function ScreenSwitcher() {
+  const { screen } = useNav();
+
+  switch (screen.name) {
+    case "start":
+      return <StartScreen />;
+    case "onboarding":
+      return <OnboardingScreen />;
+    case "tabs":
+      return <TabsContainer />;
+    case "track":
+      return <TrackScreen />;
+    case "lesson":
+      return <LessonScreen />;
+    case "sim-character-select":
+      return <CharacterSelectScreen />;
+    case "sim-game":
+      return <GameScreen />;
+    case "sim-outcome":
+      return <OutcomeScreen />;
+    default:
+      return null;
+  }
 }
 
-function AppContent() {
+function AppInner() {
+  const { appLoaded, onboardingComplete } = useApp();
+
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -53,21 +74,22 @@ function AppContent() {
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) return null;
+  if (!appLoaded) return null;
+
+  const initialScreen: AppScreen = onboardingComplete
+    ? { name: "tabs" }
+    : { name: "start" };
 
   return (
-    <SafeAreaProvider>
+    <NavigationProvider initial={initialScreen}>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView>
-            <KeyboardProvider>
-              <GameProvider>
-                <RootLayoutNav />
-              </GameProvider>
-            </KeyboardProvider>
-          </GestureHandlerRootView>
+          <GameProvider>
+            <ScreenSwitcher />
+          </GameProvider>
         </QueryClientProvider>
       </ErrorBoundary>
-    </SafeAreaProvider>
+    </NavigationProvider>
   );
 }
 
@@ -75,7 +97,13 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AppProvider>
-        <AppContent />
+        <SafeAreaProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <KeyboardProvider>
+              <AppInner />
+            </KeyboardProvider>
+          </GestureHandlerRootView>
+        </SafeAreaProvider>
       </AppProvider>
     </ThemeProvider>
   );

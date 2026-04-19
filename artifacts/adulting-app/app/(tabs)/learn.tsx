@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
 import React, { useState } from "react";
+
+import { useNav } from "@/context/NavigationContext";
 import {
   Alert,
   Modal,
@@ -96,6 +97,7 @@ function PurchaseModal({
 export default function LearnScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { navigate } = useNav();
   const { getTrackProgress, coins, purchaseTrack, isTrackUnlocked } = useApp();
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
 
@@ -107,7 +109,7 @@ export default function LearnScreen() {
 
   const handlePremiumPress = (track: Track) => {
     if (isTrackUnlocked(track.id)) {
-      router.push(`/track/${track.id}` as any);
+      navigate({ name: "track", trackId: track.id });
     } else {
       setSelectedTrack(track);
     }
@@ -153,7 +155,7 @@ export default function LearnScreen() {
                 <TrackCard
                   track={track}
                   progress={getTrackProgress(track.id, track.lessonsCount)}
-                  onPress={() => router.push(`/track/${track.id}` as any)}
+                  onPress={() => navigate({ name: "track", trackId: track.id })}
                 />
               </Animated.View>
             ))}
@@ -181,7 +183,7 @@ export default function LearnScreen() {
                     <TrackCard
                       track={track}
                       progress={getTrackProgress(track.id, track.lessonsCount)}
-                      onPress={() => router.push(`/track/${track.id}` as any)}
+                      onPress={() => navigate({ name: "track", trackId: track.id })}
                     />
                   ) : (
                     <TouchableOpacity

@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
+
+import { useNav } from "@/context/NavigationContext";
 import {
   Platform,
   ScrollView,
@@ -17,7 +18,8 @@ import { getTrack } from "@/data/tracks";
 import { useColors } from "@/hooks/useColors";
 
 export default function TrackScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { screen, goBack, navigate } = useNav();
+  const id = (screen as { name: "track"; trackId: string }).trackId;
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { isLessonComplete, getTrackProgress } = useApp();
@@ -47,7 +49,7 @@ export default function TrackScreen() {
           { paddingTop: topInset + 12, backgroundColor: track.color + "12" },
         ]}
       >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => goBack()} style={styles.backBtn}>
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
         <View style={styles.headerContent}>
@@ -91,7 +93,7 @@ export default function TrackScreen() {
                 isComplete={isComplete}
                 isLocked={isLocked}
                 onPress={() =>
-                  router.push(`/lesson/${track.id}/${lesson.id}` as any)
+                  navigate({ name: "lesson", trackId: track.id, lessonId: lesson.id })
                 }
               />
             </Animated.View>

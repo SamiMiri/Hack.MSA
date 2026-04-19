@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
 import React from "react";
+
+import { useNav } from "@/context/NavigationContext";
 import {
   Platform,
   StyleSheet,
@@ -51,6 +52,7 @@ function StartButton({ onPress }: { onPress: () => void }) {
 }
 
 export default function StartScreen() {
+  const { navigate } = useNav();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 20) : insets.top;
   const botPad = Platform.OS === "web" ? Math.max(insets.bottom, 24) : insets.bottom;
@@ -100,7 +102,7 @@ export default function StartScreen() {
         entering={FadeInUp.delay(450).springify()}
         style={[styles.bottomArea, { paddingBottom: botPad + 24 }]}
       >
-        <StartButton onPress={() => router.replace("/onboarding")} />
+        <StartButton onPress={() => navigate({ name: "onboarding" })} />
         <Text style={styles.freeNote}>Free to start · No account needed</Text>
       </Animated.View>
     </View>

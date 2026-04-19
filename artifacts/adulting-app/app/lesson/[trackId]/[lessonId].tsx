@@ -1,7 +1,8 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { router, useLocalSearchParams } from "expo-router";
 import React, { useRef, useState } from "react";
+
+import { useNav } from "@/context/NavigationContext";
 import {
   Dimensions,
   FlatList,
@@ -218,7 +219,8 @@ function QuizStep({ step, trackColor, onCorrect, onWrong }: QuizStepProps) {
 }
 
 export default function LessonScreen() {
-  const { trackId, lessonId } = useLocalSearchParams<{ trackId: string; lessonId: string }>();
+  const { screen, goBack } = useNav();
+  const { trackId, lessonId } = screen as { name: "lesson"; trackId: string; lessonId: string };
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { completeLesson, isLessonComplete } = useApp();
@@ -309,7 +311,7 @@ export default function LessonScreen() {
             )}
             <View style={styles.completedActions}>
               <TouchableOpacity
-                onPress={() => router.back()}
+                onPress={() => goBack()}
                 style={[styles.completedBtn, { backgroundColor: track.color }]}
               >
                 <Text style={styles.completedBtnText}>Back to Track</Text>
@@ -324,7 +326,7 @@ export default function LessonScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.lessonHeader, { paddingTop: topInset + 12 }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => goBack()} style={styles.backBtn}>
           <Feather name="x" size={20} color={colors.foreground} />
         </TouchableOpacity>
         <View style={[styles.lessonProgress, { backgroundColor: colors.muted }]}>

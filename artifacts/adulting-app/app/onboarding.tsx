@@ -1,7 +1,8 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
 import React, { useState } from "react";
+
+import { useNav } from "@/context/NavigationContext";
 import {
   Platform,
   ScrollView,
@@ -69,6 +70,7 @@ function OptionButton({ label, icon, selected, onPress, color }: OptionButtonPro
 }
 
 export default function OnboardingScreen() {
+  const { replace } = useNav();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { completeOnboarding } = useApp();
@@ -101,7 +103,7 @@ export default function OnboardingScreen() {
         goal: answers["goal"] || "survive",
         name: "",
       });
-      router.replace("/(tabs)");
+      replace({ name: "tabs" });
     }
   };
 
