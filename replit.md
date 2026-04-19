@@ -63,12 +63,23 @@ pnpm workspace monorepo using TypeScript. Three artifacts for young adults (18-2
 - **Type**: React + Vite web app
 - **Preview path**: `/lifelevel`
 - **Port**: 24665
-- **Description**: Duolingo-style gamified life skills platform
+- **Description**: Feature-identical web demo of the Adulting 101 mobile app
 - **Features**:
-  - 5-lesson campaign with streaks, XP, and leaderboard
-  - Lesson types: multiple choice, fill-in-the-blank, matching, scenario
-  - Hearts system (lives), streak tracking, weekly XP leaderboard
-- **State**: localStorage
+  - **Home**: Stats card (lessons, coins, streak), Skill Tracks preview, Upcoming Deadlines
+  - **Learn**: Free tracks (Money & Budgeting, Taxes & Filing), Premium tracks (coins-locked), Lesson browser per track
+  - **Lesson Player**: Text/quiz/checklist step types, quiz scoring, per-step animations, coin rewards
+  - **Simulate (Play tab)**: All scenarios from `scenarios.ts` (free + premium coin-gated), game engine with stats, flags, branching, consequence scenes, endings, best scores
+  - **Tools**: Budget Builder (editable amounts, live surplus/deficit card), Lease Checklist, Tax Doc Tracker
+  - **Progress**: Overall progress card, milestones, per-track progress bars, completed lesson history
+  - **Settings**: Theme switcher (light/dark/system), profile summary, reset
+- **State**: localStorage via `AppContext` (coins, completedLessons, budgetItems, leaseChecklist, taxDocuments, unlockedScenarios)
+- **Key files**:
+  - `src/data/tracks.ts` — all lesson content (copied from mobile, ~984 lines)
+  - `src/data/scenarios.ts` — all scenarios (copied from mobile, ~1058 lines)
+  - `src/context/AppContext.tsx` — global state (coins, progress, tools)
+  - `src/context/GameContext.tsx` — simulator engine (scenes, choices, flags, deltas, best scores)
+  - `src/pages/` — Home, Learn, Track, Lesson, Simulate, SimulatorGame, Tools, Progress, Settings
+  - `src/components/BottomNav.tsx` — 5-tab nav (Home/Learn/Play/Tools/Progress) + More popover (Settings)
 
 ### API Server (`artifacts/api-server`)
 - **Type**: Express API

@@ -6,24 +6,32 @@ import NotFound from "@/pages/not-found";
 
 import Home from "@/pages/Home";
 import Learn from "@/pages/Learn";
-import LessonScreen from "@/pages/Lesson";
-import Leaderboard from "@/pages/Leaderboard";
-import Profile from "@/pages/Profile";
+import Track from "@/pages/Track";
+import LessonPage from "@/pages/Lesson";
+import Simulate from "@/pages/Simulate";
+import SimulatorGame from "@/pages/SimulatorGame";
+import Tools from "@/pages/Tools";
+import Progress from "@/pages/Progress";
+import Settings from "@/pages/Settings";
 import { BottomNav } from "@/components/BottomNav";
-import { Tutorial } from "@/components/Tutorial";
+import { AppProvider } from "@/context/AppContext";
+import { GameProvider } from "@/context/GameContext";
 
 const queryClient = new QueryClient();
 
 function Router() {
   return (
     <div className="flex flex-col min-h-[100dvh] bg-background text-foreground overflow-hidden">
-      <Tutorial />
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/learn" component={Learn} />
-        <Route path="/lesson/:id" component={LessonScreen} />
-        <Route path="/leaderboard" component={Leaderboard} />
-        <Route path="/profile" component={Profile} />
+        <Route path="/track/:id" component={Track} />
+        <Route path="/lesson/:trackId/:lessonId" component={LessonPage} />
+        <Route path="/simulate" component={Simulate} />
+        <Route path="/simulator" component={SimulatorGame} />
+        <Route path="/tools" component={Tools} />
+        <Route path="/progress" component={Progress} />
+        <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>
       <BottomNav />
@@ -35,9 +43,13 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
+        <AppProvider>
+          <GameProvider>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Router />
+            </WouterRouter>
+          </GameProvider>
+        </AppProvider>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
