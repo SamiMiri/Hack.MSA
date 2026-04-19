@@ -76,9 +76,7 @@ function AppInner() {
   if (!fontsLoaded && !fontError) return null;
   if (!appLoaded) return null;
 
-  const initialScreen: AppScreen = onboardingComplete
-    ? { name: "tabs" }
-    : { name: "start" };
+  const initialScreen: AppScreen = { name: "start" };
 
   return (
     <NavigationProvider initial={initialScreen}>

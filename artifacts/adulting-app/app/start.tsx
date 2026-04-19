@@ -18,6 +18,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 
+import { useApp } from "@/context/AppContext";
 import { useNav } from "@/context/NavigationContext";
 
 const START_IMAGE = require("../assets/start-screen.jpg");
@@ -44,6 +45,7 @@ function PlayButton({ onPress }: { onPress: () => void }) {
 
 export default function StartScreen() {
   const { navigate } = useNav();
+  const { onboardingComplete } = useApp();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 20) : insets.top;
   const botPad = Platform.OS === "web" ? Math.max(insets.bottom, 24) : insets.bottom;
@@ -64,7 +66,7 @@ export default function StartScreen() {
       </Animated.View>
 
       <Animated.View entering={FadeInUp.delay(350).springify()} style={styles.footer}>
-        <PlayButton onPress={() => navigate({ name: "onboarding" })} />
+        <PlayButton onPress={() => navigate(onboardingComplete ? { name: "tabs" } : { name: "onboarding" })} />
         <Text style={styles.tagline}>Make choices. Face consequences. Try to survive.</Text>
       </Animated.View>
     </View>
