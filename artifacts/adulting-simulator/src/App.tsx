@@ -110,6 +110,9 @@ export default function App() {
     <div className="min-h-[100dvh] w-full bg-background text-foreground overflow-hidden font-sans">
       <ThemeToggle dark={dark} toggle={toggle} />
       <AnimatePresence mode="wait">
+        {gameState.gameState === 'splash' && (
+          <SplashScreen key="splash" startGame={gameState.startGame} />
+        )}
         {gameState.gameState === 'menu' && (
           <MenuScreen key="menu" {...gameState} />
         )}
@@ -124,6 +127,47 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function SplashScreen({ startGame }: Pick<ReturnType<typeof useGameState>, 'startGame'>) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-white flex flex-col items-center justify-center"
+    >
+      <div className="flex flex-col items-center gap-8 px-6 w-full max-w-lg">
+        <div className="text-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Life Sim</p>
+          <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 leading-none">
+            Adulting<br />Simulator
+          </h1>
+        </div>
+
+        <div className="w-full rounded-3xl overflow-hidden shadow-2xl border border-gray-100">
+          <img
+            src={`${import.meta.env.BASE_URL}start-screen.jpg`}
+            alt="Adulting Simulator"
+            className="w-full object-cover"
+            draggable={false}
+          />
+        </div>
+
+        <motion.button
+          onClick={startGame}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
+          className="w-24 h-24 rounded-full bg-gray-900 text-white flex items-center justify-center shadow-2xl"
+          aria-label="Play"
+        >
+          <Play className="w-10 h-10 ml-1 fill-white" />
+        </motion.button>
+
+        <p className="text-sm text-gray-400">Make choices. Face consequences. Try to survive.</p>
+      </div>
+    </motion.div>
   );
 }
 

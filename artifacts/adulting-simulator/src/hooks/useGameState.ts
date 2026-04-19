@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Scenario, SCENARIOS, SceneChoice } from '../data/scenarios';
 import { CharacterOption, CHARACTERS } from '../data/characters';
 
-export type GameState = 'menu' | 'character-select' | 'playing' | 'consequence' | 'outcome';
+export type GameState = 'splash' | 'menu' | 'character-select' | 'playing' | 'consequence' | 'outcome';
 export type OutcomeRating = 'You Made It' | 'Getting By' | 'Hard Lessons';
 
 export interface ScoreData {
@@ -11,7 +11,7 @@ export interface ScoreData {
 }
 
 export function useGameState() {
-  const [gameState, setGameState] = useState<GameState>('menu');
+  const [gameState, setGameState] = useState<GameState>('splash');
   const [currentScenario, setCurrentScenario] = useState<Scenario | null>(null);
   const [currentSceneId, setCurrentSceneId] = useState<string>('');
   const [pendingScenarioId, setPendingScenarioId] = useState<string | null>(null);
@@ -200,6 +200,10 @@ export function useGameState() {
     setCurrentScenario(null);
   }, []);
 
+  const startGame = useCallback(() => {
+    setGameState('menu');
+  }, []);
+
   return {
     gameState,
     currentScenario,
@@ -217,6 +221,7 @@ export function useGameState() {
     makeChoice,
     continueGame,
     returnToMenu,
+    startGame,
     calculateRating,
   };
 }
