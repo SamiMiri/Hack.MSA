@@ -6,6 +6,9 @@ import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
+  BottomTabBarProps,
+} from "@react-navigation/bottom-tabs";
+import {
   Platform,
   StyleSheet,
   Text,
@@ -17,6 +20,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/context/ThemeContext";
 import { useColors } from "@/hooks/useColors";
 
+/* ─────────────────────────────────────────────
+   Native (Liquid Glass) layout — iOS 26+
+───────────────────────────────────────────── */
 function NativeTabLayout() {
   return (
     <NativeTabs>
@@ -40,29 +46,127 @@ function NativeTabLayout() {
   );
 }
 
-function MoreTabButton({
-  onPress,
-  color,
-  isWeb,
-}: {
-  onPress: () => void;
-  color: string;
+/* ─────────────────────────────────────────────
+   Custom tab bar — full control, no routing bugs
+───────────────────────────────────────────── */
+const MAIN_TABS = [
+  { name: "index", label: "Home", icon: "home" as const, sfIcon: "house" },
+  { name: "learn", label: "Learn", icon: "book-open" as const, sfIcon: "book" },
+  { name: "simulate", label: "Play", icon: "play-circle" as const, sfIcon: "gamecontroller" },
+];
+
+const MENU_ITEMS = [
+  { label: "Tools", icon: "tool" as const, route: "/(tabs)/tools" },
+  { label: "Progress", icon: "bar-chart-2" as const, route: "/(tabs)/progress" },
+  { label: "Settings", icon: "settings" as const, route: "/(tabs)/settings" },
+] as const;
+
+interface CustomTabBarProps extends BottomTabBarProps {
+  colors: ReturnType<typeof useColors>;
+  isDark: boolean;
+  isIOS: boolean;
   isWeb: boolean;
-}) {
+  moreOpen: boolean;
+  onMorePress: () => void;
+  tabBarHeight: number;
+}
+
+function CustomTabBar({
+  state,
+  navigation,
+  colors,
+  isDark,
+  isIOS,
+  isWeb,
+  moreOpen,
+  onMorePress,
+  tabBarHeight,
+}: CustomTabBarProps) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <TouchableOpacity
-      style={styles.moreButton}
-      onPress={onPress}
-      activeOpacity={0.7}
+    <View
+      style={[
+        styles.tabBar,
+        {
+          height: tabBarHeight + insets.bottom,
+          paddingBottom: insets.bottom,
+          backgroundColor: isIOS ? "transparent" : colors.background,
+          borderTopColor: colors.border,
+        },
+      ]}
     >
-      <Feather name="more-horizontal" size={22} color={color} />
-      <Text style={[styles.moreLabel, { color, marginBottom: isWeb ? 8 : 0 }]}>
-        More
-      </Text>
-    </TouchableOpacity>
+      {isIOS && (
+        <BlurView
+          intensity={100}
+          tint={isDark ? "dark" : "light"}
+          style={StyleSheet.absoluteFill}
+        />
+      )}
+
+      {MAIN_TABS.map((tab) => {
+        const routeIndex = state.routes.findIndex((r) => r.name === tab.name);
+        const isFocused = state.index === routeIndex;
+        const color = isFocused ? colors.primary : colors.mutedForeground;
+
+        return (
+          <TouchableOpacity
+            key={tab.name}
+            style={styles.tabItem}
+            onPress={() => {
+              if (!isFocused) {
+                navigation.navigate(tab.name);
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            {isIOS ? (
+              <SymbolView name={tab.sfIcon} tintColor={color} size={24} />
+            ) : (
+              <Feather name={tab.icon} size={22} color={color} />
+            )}
+            <Text
+              style={[
+                styles.tabLabel,
+                { color, marginBottom: isWeb ? 8 : 0 },
+              ]}
+            >
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+
+      {/* More — pure UI button, zero routing involvement */}
+      <TouchableOpacity
+        style={styles.tabItem}
+        onPress={onMorePress}
+        activeOpacity={0.7}
+      >
+        <Feather
+          name="more-horizontal"
+          size={22}
+          color={moreOpen ? colors.primary : colors.mutedForeground}
+        />
+        <Text
+          style={[
+            styles.tabLabel,
+            {
+              color: moreOpen ? colors.primary : colors.mutedForeground,
+              marginBottom: isWeb ? 8 : 0,
+            },
+          ]}
+        >
+          More
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
+/* ─────────────────────────────────────────────
+   Classic layout (Android / Web / older iOS)
+───────────────────────────────────────────── */
 function ClassicTabLayout() {
   const colors = useColors();
   const { resolvedTheme } = useTheme();
@@ -71,13 +175,9 @@ function ClassicTabLayout() {
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
   const [moreOpen, setMoreOpen] = useState(false);
-  const TAB_BAR_HEIGHT = isWeb ? 84 : 60;
+  const TAB_BAR_HEIGHT = isWeb ? 60 : 56;
 
-  const MENU_ITEMS = [
-    { label: "Tools", icon: "tool", route: "/(tabs)/tools" },
-    { label: "Progress", icon: "bar-chart-2", route: "/(tabs)/progress" },
-    { label: "Settings", icon: "settings", route: "/(tabs)/settings" },
-  ] as const;
+  const dropdownBottom = TAB_BAR_HEIGHT + insets.bottom + 8;
 
   function closeMenu() {
     setMoreOpen(false);
@@ -88,130 +188,46 @@ function ClassicTabLayout() {
     router.push(route as any);
   }
 
-  const dropdownBottom = TAB_BAR_HEIGHT + insets.bottom + 8;
-
   return (
     <View style={{ flex: 1 }}>
       <Tabs
+        tabBar={(props) => (
+          <CustomTabBar
+            {...props}
+            colors={colors}
+            isDark={isDark}
+            isIOS={isIOS}
+            isWeb={isWeb}
+            moreOpen={moreOpen}
+            onMorePress={() => setMoreOpen((v) => !v)}
+            tabBarHeight={TAB_BAR_HEIGHT}
+          />
+        )}
         screenOptions={{
-          tabBarActiveTintColor: colors.primary,
-          tabBarInactiveTintColor: colors.mutedForeground,
           headerShown: false,
-          tabBarStyle: {
-            position: "absolute",
-            backgroundColor: isIOS ? "transparent" : colors.background,
-            borderTopWidth: 1,
-            borderTopColor: colors.border,
-            elevation: 0,
-            ...(isWeb ? { height: TAB_BAR_HEIGHT } : {}),
-          },
-          tabBarBackground: () =>
-            isIOS ? (
-              <BlurView
-                intensity={100}
-                tint={isDark ? "dark" : "light"}
-                style={StyleSheet.absoluteFill}
-              />
-            ) : isWeb ? (
-              <View
-                style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}
-              />
-            ) : null,
-          tabBarLabelStyle: {
-            fontFamily: "Inter_600SemiBold",
-            fontSize: 11,
-            marginBottom: isWeb ? 8 : 0,
-          },
-          tabBarItemStyle: {
-            alignItems: "center",
-            justifyContent: "center",
-          },
+          tabBarStyle: { display: "none" },
         }}
       >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: "Home",
-            tabBarIcon: ({ color }) =>
-              isIOS ? (
-                <SymbolView name="house" tintColor={color} size={24} />
-              ) : (
-                <Feather name="home" size={22} color={color} />
-              ),
-          }}
-        />
-        <Tabs.Screen
-          name="learn"
-          options={{
-            title: "Learn",
-            tabBarIcon: ({ color }) =>
-              isIOS ? (
-                <SymbolView name="book" tintColor={color} size={24} />
-              ) : (
-                <Feather name="book-open" size={22} color={color} />
-              ),
-          }}
-        />
-        <Tabs.Screen
-          name="simulate"
-          options={{
-            title: "Play",
-            tabBarIcon: ({ color }) =>
-              isIOS ? (
-                <SymbolView name="gamecontroller" tintColor={color} size={24} />
-              ) : (
-                <Feather name="play-circle" size={22} color={color} />
-              ),
-          }}
-        />
-        <Tabs.Screen
-          name="more"
-          options={{
-            title: "More",
-            tabBarButton: () => (
-              <MoreTabButton
-                onPress={() => setMoreOpen((v) => !v)}
-                color={moreOpen ? colors.primary : colors.mutedForeground}
-                isWeb={isWeb}
-              />
-            ),
-          }}
-        />
-        {/* Hidden routes — zero-width so they don't affect tab centering */}
-        <Tabs.Screen
-          name="tools"
-          options={{
-            tabBarButton: () => null,
-            tabBarItemStyle: { flex: 0, width: 0, overflow: "hidden" },
-          }}
-        />
-        <Tabs.Screen
-          name="progress"
-          options={{
-            tabBarButton: () => null,
-            tabBarItemStyle: { flex: 0, width: 0, overflow: "hidden" },
-          }}
-        />
-        <Tabs.Screen
-          name="settings"
-          options={{
-            tabBarButton: () => null,
-            tabBarItemStyle: { flex: 0, width: 0, overflow: "hidden" },
-          }}
-        />
+        <Tabs.Screen name="index" />
+        <Tabs.Screen name="learn" />
+        <Tabs.Screen name="simulate" />
+        <Tabs.Screen name="more" />
+        <Tabs.Screen name="tools" />
+        <Tabs.Screen name="progress" />
+        <Tabs.Screen name="settings" />
       </Tabs>
 
-      {/* Dropdown overlay — rendered after <Tabs> so it sits on top */}
+      {/* Dropdown — rendered outside <Tabs> so it floats above everything */}
       {moreOpen && (
         <>
-          {/* Invisible full-screen backdrop: tap anywhere outside to close */}
+          {/* Transparent backdrop — tap to close */}
           <TouchableOpacity
             style={StyleSheet.absoluteFill}
             onPress={closeMenu}
             activeOpacity={1}
           />
 
-          {/* The actual menu card */}
+          {/* Menu card */}
           <View
             style={[
               styles.dropdown,
@@ -241,12 +257,16 @@ function ClassicTabLayout() {
                     { backgroundColor: colors.primary + "18" },
                   ]}
                 >
-                  <Feather name={item.icon as any} size={16} color={colors.primary} />
+                  <Feather name={item.icon} size={16} color={colors.primary} />
                 </View>
                 <Text style={[styles.dropdownLabel, { color: colors.foreground }]}>
                   {item.label}
                 </Text>
-                <Feather name="chevron-right" size={15} color={colors.mutedForeground} />
+                <Feather
+                  name="chevron-right"
+                  size={15}
+                  color={colors.mutedForeground}
+                />
               </TouchableOpacity>
             ))}
           </View>
@@ -256,6 +276,9 @@ function ClassicTabLayout() {
   );
 }
 
+/* ─────────────────────────────────────────────
+   Root export
+───────────────────────────────────────────── */
 export default function TabLayout() {
   if (isLiquidGlassAvailable()) {
     return <NativeTabLayout />;
@@ -263,7 +286,26 @@ export default function TabLayout() {
   return <ClassicTabLayout />;
 }
 
+/* ─────────────────────────────────────────────
+   Styles
+───────────────────────────────────────────── */
 const styles = StyleSheet.create({
+  tabBar: {
+    flexDirection: "row",
+    borderTopWidth: 1,
+    overflow: "hidden",
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 3,
+    paddingTop: 8,
+  },
+  tabLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+  },
   dropdown: {
     position: "absolute",
     right: 12,
@@ -295,16 +337,6 @@ const styles = StyleSheet.create({
   dropdownLabel: {
     flex: 1,
     fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-  },
-  moreButton: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 3,
-  },
-  moreLabel: {
-    fontSize: 11,
     fontFamily: "Inter_600SemiBold",
   },
 });
