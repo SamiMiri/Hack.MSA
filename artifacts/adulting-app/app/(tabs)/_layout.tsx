@@ -63,15 +63,20 @@ function MoreDropdown({ visible, onClose, colors, tabBarHeight }: MoreDropdownPr
     router.push(route as any);
   }
 
+  if (!visible) return null;
+
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
       onRequestClose={onClose}
-      statusBarTranslucent
     >
-      <TouchableOpacity style={styles.backdrop} onPress={onClose} activeOpacity={1}>
+      <TouchableOpacity
+        style={styles.backdrop}
+        onPress={onClose}
+        activeOpacity={1}
+      >
         <View
           style={[
             styles.dropdown,
@@ -89,10 +94,18 @@ function MoreDropdown({ visible, onClose, colors, tabBarHeight }: MoreDropdownPr
               activeOpacity={0.7}
               style={[
                 styles.dropdownItem,
-                i < items.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border },
+                i < items.length - 1 && {
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.border,
+                },
               ]}
             >
-              <View style={[styles.dropdownIcon, { backgroundColor: colors.primary + "18" }]}>
+              <View
+                style={[
+                  styles.dropdownIcon,
+                  { backgroundColor: colors.primary + "18" },
+                ]}
+              >
                 <Feather name={item.icon as any} size={16} color={colors.primary} />
               </View>
               <Text style={[styles.dropdownLabel, { color: colors.foreground }]}>
@@ -108,24 +121,24 @@ function MoreDropdown({ visible, onClose, colors, tabBarHeight }: MoreDropdownPr
 }
 
 function MoreTabButton({
-  moreOpen,
   onPress,
   color,
   isWeb,
 }: {
-  moreOpen: boolean;
   onPress: () => void;
   color: string;
   isWeb: boolean;
 }) {
   return (
     <TouchableOpacity
-      style={[styles.moreButton, isWeb && styles.moreButtonWeb]}
+      style={styles.moreButton}
       onPress={onPress}
       activeOpacity={0.7}
     >
       <Feather name="more-horizontal" size={22} color={color} />
-      <Text style={[styles.moreLabel, { color, marginBottom: isWeb ? 8 : 0 }]}>More</Text>
+      <Text style={[styles.moreLabel, { color, marginBottom: isWeb ? 8 : 0 }]}>
+        More
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -168,7 +181,9 @@ function ClassicTabLayout() {
                 style={StyleSheet.absoluteFill}
               />
             ) : isWeb ? (
-              <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
+              <View
+                style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}
+              />
             ) : null,
           tabBarLabelStyle: {
             fontFamily: "Inter_600SemiBold",
@@ -186,7 +201,11 @@ function ClassicTabLayout() {
           options={{
             title: "Home",
             tabBarIcon: ({ color }) =>
-              isIOS ? <SymbolView name="house" tintColor={color} size={24} /> : <Feather name="home" size={22} color={color} />,
+              isIOS ? (
+                <SymbolView name="house" tintColor={color} size={24} />
+              ) : (
+                <Feather name="home" size={22} color={color} />
+              ),
           }}
         />
         <Tabs.Screen
@@ -194,7 +213,11 @@ function ClassicTabLayout() {
           options={{
             title: "Learn",
             tabBarIcon: ({ color }) =>
-              isIOS ? <SymbolView name="book" tintColor={color} size={24} /> : <Feather name="book-open" size={22} color={color} />,
+              isIOS ? (
+                <SymbolView name="book" tintColor={color} size={24} />
+              ) : (
+                <Feather name="book-open" size={22} color={color} />
+              ),
           }}
         />
         <Tabs.Screen
@@ -202,7 +225,11 @@ function ClassicTabLayout() {
           options={{
             title: "Play",
             tabBarIcon: ({ color }) =>
-              isIOS ? <SymbolView name="gamecontroller" tintColor={color} size={24} /> : <Feather name="play-circle" size={22} color={color} />,
+              isIOS ? (
+                <SymbolView name="gamecontroller" tintColor={color} size={24} />
+              ) : (
+                <Feather name="play-circle" size={22} color={color} />
+              ),
           }}
         />
         <Tabs.Screen
@@ -211,7 +238,6 @@ function ClassicTabLayout() {
             title: "More",
             tabBarButton: () => (
               <MoreTabButton
-                moreOpen={moreOpen}
                 onPress={() => setMoreOpen((v) => !v)}
                 color={moreOpen ? colors.primary : colors.mutedForeground}
                 isWeb={isWeb}
@@ -219,10 +245,28 @@ function ClassicTabLayout() {
             ),
           }}
         />
-        {/* Hidden routes — accessible via dropdown, fully removed from tab bar layout */}
-        <Tabs.Screen name="tools" options={{ tabBarButton: () => null, tabBarItemStyle: { display: "none" } }} />
-        <Tabs.Screen name="progress" options={{ tabBarButton: () => null, tabBarItemStyle: { display: "none" } }} />
-        <Tabs.Screen name="settings" options={{ tabBarButton: () => null, tabBarItemStyle: { display: "none" } }} />
+        {/* Hidden routes — zero-width so they don't affect centering */}
+        <Tabs.Screen
+          name="tools"
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { flex: 0, width: 0, overflow: "hidden" },
+          }}
+        />
+        <Tabs.Screen
+          name="progress"
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { flex: 0, width: 0, overflow: "hidden" },
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { flex: 0, width: 0, overflow: "hidden" },
+          }}
+        />
       </Tabs>
     </>
   );
@@ -274,13 +318,9 @@ const styles = StyleSheet.create({
   },
   moreButton: {
     flex: 1,
-    height: "100%",
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
-  },
-  moreButtonWeb: {
-    paddingBottom: 0,
   },
   moreLabel: {
     fontSize: 11,
