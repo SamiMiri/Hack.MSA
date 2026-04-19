@@ -237,8 +237,14 @@ function ClassicTabLayout() {
             ),
           }}
         />
-        <Tabs.Screen name="progress" options={{ href: null }} />
-        <Tabs.Screen name="settings" options={{ href: null }} />
+        <Tabs.Screen
+          name="progress"
+          options={{ tabBarButton: () => null }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{ tabBarButton: () => null }}
+        />
       </Tabs>
     </>
   );
