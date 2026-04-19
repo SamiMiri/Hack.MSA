@@ -33,10 +33,6 @@ function NativeTabLayout() {
         <Icon sf={{ default: "gamecontroller", selected: "gamecontroller.fill" }} />
         <Label>Play</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="tools">
-        <Icon sf={{ default: "wrench", selected: "wrench.fill" }} />
-        <Label>Tools</Label>
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="more">
         <Icon sf={{ default: "ellipsis", selected: "ellipsis" }} />
         <Label>More</Label>
@@ -57,6 +53,7 @@ function MoreDropdown({ visible, onClose, colors, tabBarHeight }: MoreDropdownPr
   const bottomOffset = tabBarHeight + insets.bottom + 8;
 
   const items = [
+    { label: "Tools", icon: "tool", route: "/(tabs)/tools" },
     { label: "Progress", icon: "bar-chart-2", route: "/(tabs)/progress" },
     { label: "Settings", icon: "settings", route: "/(tabs)/settings" },
   ] as const;
@@ -110,6 +107,29 @@ function MoreDropdown({ visible, onClose, colors, tabBarHeight }: MoreDropdownPr
   );
 }
 
+function MoreTabButton({
+  moreOpen,
+  onPress,
+  color,
+  isWeb,
+}: {
+  moreOpen: boolean;
+  onPress: () => void;
+  color: string;
+  isWeb: boolean;
+}) {
+  return (
+    <TouchableOpacity
+      style={[styles.moreButton, isWeb && styles.moreButtonWeb]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Feather name="more-horizontal" size={22} color={color} />
+      <Text style={[styles.moreLabel, { color, marginBottom: isWeb ? 8 : 0 }]}>More</Text>
+    </TouchableOpacity>
+  );
+}
+
 function ClassicTabLayout() {
   const colors = useColors();
   const { resolvedTheme } = useTheme();
@@ -138,7 +158,7 @@ function ClassicTabLayout() {
             borderTopWidth: 1,
             borderTopColor: colors.border,
             elevation: 0,
-            ...(isWeb ? { height: 84 } : {}),
+            ...(isWeb ? { height: TAB_BAR_HEIGHT } : {}),
           },
           tabBarBackground: () =>
             isIOS ? (
@@ -148,14 +168,16 @@ function ClassicTabLayout() {
                 style={StyleSheet.absoluteFill}
               />
             ) : isWeb ? (
-              <View
-                style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}
-              />
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
             ) : null,
           tabBarLabelStyle: {
             fontFamily: "Inter_600SemiBold",
             fontSize: 11,
             marginBottom: isWeb ? 8 : 0,
+          },
+          tabBarItemStyle: {
+            alignItems: "center",
+            justifyContent: "center",
           },
         }}
       >
@@ -164,11 +186,7 @@ function ClassicTabLayout() {
           options={{
             title: "Home",
             tabBarIcon: ({ color }) =>
-              isIOS ? (
-                <SymbolView name="house" tintColor={color} size={24} />
-              ) : (
-                <Feather name="home" size={22} color={color} />
-              ),
+              isIOS ? <SymbolView name="house" tintColor={color} size={24} /> : <Feather name="home" size={22} color={color} />,
           }}
         />
         <Tabs.Screen
@@ -176,11 +194,7 @@ function ClassicTabLayout() {
           options={{
             title: "Learn",
             tabBarIcon: ({ color }) =>
-              isIOS ? (
-                <SymbolView name="book" tintColor={color} size={24} />
-              ) : (
-                <Feather name="book-open" size={22} color={color} />
-              ),
+              isIOS ? <SymbolView name="book" tintColor={color} size={24} /> : <Feather name="book-open" size={22} color={color} />,
           }}
         />
         <Tabs.Screen
@@ -188,63 +202,27 @@ function ClassicTabLayout() {
           options={{
             title: "Play",
             tabBarIcon: ({ color }) =>
-              isIOS ? (
-                <SymbolView name="gamecontroller" tintColor={color} size={24} />
-              ) : (
-                <Feather name="play-circle" size={22} color={color} />
-              ),
-          }}
-        />
-        <Tabs.Screen
-          name="tools"
-          options={{
-            title: "Tools",
-            tabBarIcon: ({ color }) =>
-              isIOS ? (
-                <SymbolView name="wrench" tintColor={color} size={24} />
-              ) : (
-                <Feather name="tool" size={22} color={color} />
-              ),
+              isIOS ? <SymbolView name="gamecontroller" tintColor={color} size={24} /> : <Feather name="play-circle" size={22} color={color} />,
           }}
         />
         <Tabs.Screen
           name="more"
           options={{
             title: "More",
-            tabBarButton: (props) => (
-              <TouchableOpacity
-                style={[styles.moreButton, { flex: props.style ? (props.style as any).flex ?? 1 : 1 }]}
+            tabBarButton: () => (
+              <MoreTabButton
+                moreOpen={moreOpen}
                 onPress={() => setMoreOpen((v) => !v)}
-                activeOpacity={0.7}
-              >
-                <Feather
-                  name="more-horizontal"
-                  size={22}
-                  color={moreOpen ? colors.primary : colors.mutedForeground}
-                />
-                <Text
-                  style={[
-                    styles.moreLabel,
-                    {
-                      color: moreOpen ? colors.primary : colors.mutedForeground,
-                      marginBottom: isWeb ? 8 : 0,
-                    },
-                  ]}
-                >
-                  More
-                </Text>
-              </TouchableOpacity>
+                color={moreOpen ? colors.primary : colors.mutedForeground}
+                isWeb={isWeb}
+              />
             ),
           }}
         />
-        <Tabs.Screen
-          name="progress"
-          options={{ tabBarButton: () => null }}
-        />
-        <Tabs.Screen
-          name="settings"
-          options={{ tabBarButton: () => null }}
-        />
+        {/* Hidden routes — accessible via dropdown */}
+        <Tabs.Screen name="tools" options={{ tabBarButton: () => null }} />
+        <Tabs.Screen name="progress" options={{ tabBarButton: () => null }} />
+        <Tabs.Screen name="settings" options={{ tabBarButton: () => null }} />
       </Tabs>
     </>
   );
@@ -268,7 +246,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     overflow: "hidden",
-    minWidth: 200,
+    minWidth: 210,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.12,
@@ -295,10 +273,13 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
   },
   moreButton: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
-    paddingTop: 6,
+  },
+  moreButtonWeb: {
+    paddingBottom: 0,
   },
   moreLabel: {
     fontSize: 11,
