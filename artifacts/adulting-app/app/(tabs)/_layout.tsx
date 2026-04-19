@@ -6,7 +6,6 @@ import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  Modal,
   Platform,
   StyleSheet,
   Text,
@@ -41,85 +40,6 @@ function NativeTabLayout() {
   );
 }
 
-interface MoreDropdownProps {
-  visible: boolean;
-  onClose: () => void;
-  colors: ReturnType<typeof useColors>;
-  tabBarHeight: number;
-}
-
-function MoreDropdown({ visible, onClose, colors, tabBarHeight }: MoreDropdownProps) {
-  const insets = useSafeAreaInsets();
-  const bottomOffset = tabBarHeight + insets.bottom + 8;
-
-  const items = [
-    { label: "Tools", icon: "tool", route: "/(tabs)/tools" },
-    { label: "Progress", icon: "bar-chart-2", route: "/(tabs)/progress" },
-    { label: "Settings", icon: "settings", route: "/(tabs)/settings" },
-  ] as const;
-
-  function go(route: string) {
-    onClose();
-    router.push(route as any);
-  }
-
-  if (!visible) return null;
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <TouchableOpacity
-        style={styles.backdrop}
-        onPress={onClose}
-        activeOpacity={1}
-      >
-        <View
-          style={[
-            styles.dropdown,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              bottom: bottomOffset,
-            },
-          ]}
-        >
-          {items.map((item, i) => (
-            <TouchableOpacity
-              key={item.label}
-              onPress={() => go(item.route)}
-              activeOpacity={0.7}
-              style={[
-                styles.dropdownItem,
-                i < items.length - 1 && {
-                  borderBottomWidth: 1,
-                  borderBottomColor: colors.border,
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.dropdownIcon,
-                  { backgroundColor: colors.primary + "18" },
-                ]}
-              >
-                <Feather name={item.icon as any} size={16} color={colors.primary} />
-              </View>
-              <Text style={[styles.dropdownLabel, { color: colors.foreground }]}>
-                {item.label}
-              </Text>
-              <Feather name="chevron-right" size={15} color={colors.mutedForeground} />
-            </TouchableOpacity>
-          ))}
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
-}
-
 function MoreTabButton({
   onPress,
   color,
@@ -146,20 +66,32 @@ function MoreTabButton({
 function ClassicTabLayout() {
   const colors = useColors();
   const { resolvedTheme } = useTheme();
+  const insets = useSafeAreaInsets();
   const isDark = resolvedTheme === "dark";
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
   const [moreOpen, setMoreOpen] = useState(false);
   const TAB_BAR_HEIGHT = isWeb ? 84 : 60;
 
+  const MENU_ITEMS = [
+    { label: "Tools", icon: "tool", route: "/(tabs)/tools" },
+    { label: "Progress", icon: "bar-chart-2", route: "/(tabs)/progress" },
+    { label: "Settings", icon: "settings", route: "/(tabs)/settings" },
+  ] as const;
+
+  function closeMenu() {
+    setMoreOpen(false);
+  }
+
+  function go(route: string) {
+    closeMenu();
+    router.push(route as any);
+  }
+
+  const dropdownBottom = TAB_BAR_HEIGHT + insets.bottom + 8;
+
   return (
-    <>
-      <MoreDropdown
-        visible={moreOpen}
-        onClose={() => setMoreOpen(false)}
-        colors={colors}
-        tabBarHeight={TAB_BAR_HEIGHT}
-      />
+    <View style={{ flex: 1 }}>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: colors.primary,
@@ -245,7 +177,7 @@ function ClassicTabLayout() {
             ),
           }}
         />
-        {/* Hidden routes — zero-width so they don't affect centering */}
+        {/* Hidden routes — zero-width so they don't affect tab centering */}
         <Tabs.Screen
           name="tools"
           options={{
@@ -268,7 +200,59 @@ function ClassicTabLayout() {
           }}
         />
       </Tabs>
-    </>
+
+      {/* Dropdown overlay — rendered after <Tabs> so it sits on top */}
+      {moreOpen && (
+        <>
+          {/* Invisible full-screen backdrop: tap anywhere outside to close */}
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            onPress={closeMenu}
+            activeOpacity={1}
+          />
+
+          {/* The actual menu card */}
+          <View
+            style={[
+              styles.dropdown,
+              {
+                bottom: dropdownBottom,
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            {MENU_ITEMS.map((item, i) => (
+              <TouchableOpacity
+                key={item.label}
+                onPress={() => go(item.route)}
+                activeOpacity={0.7}
+                style={[
+                  styles.dropdownItem,
+                  i < MENU_ITEMS.length - 1 && {
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.border,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.dropdownIcon,
+                    { backgroundColor: colors.primary + "18" },
+                  ]}
+                >
+                  <Feather name={item.icon as any} size={16} color={colors.primary} />
+                </View>
+                <Text style={[styles.dropdownLabel, { color: colors.foreground }]}>
+                  {item.label}
+                </Text>
+                <Feather name="chevron-right" size={15} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      )}
+    </View>
   );
 }
 
@@ -280,10 +264,6 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "transparent",
-  },
   dropdown: {
     position: "absolute",
     right: 12,
@@ -296,6 +276,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 12,
     elevation: 8,
+    zIndex: 999,
   },
   dropdownItem: {
     flexDirection: "row",
