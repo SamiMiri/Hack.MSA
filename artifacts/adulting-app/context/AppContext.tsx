@@ -52,6 +52,9 @@ interface AppContextType {
   budgetItems: BudgetItem[];
   taxDocuments: TaxDocument[];
   leaseChecklist: LeaseCheckItem[];
+  coins: number;
+  unlockedTracks: string[];
+  unlockedScenarios: string[];
   completeOnboarding: (profile: UserProfile) => Promise<void>;
   completeLesson: (progress: LessonProgress) => Promise<void>;
   updateBudgetItems: (items: BudgetItem[]) => Promise<void>;
@@ -59,6 +62,11 @@ interface AppContextType {
   toggleLeaseItem: (id: string) => Promise<void>;
   isLessonComplete: (lessonId: string) => boolean;
   getTrackProgress: (trackId: string, totalLessons: number) => number;
+  addCoins: (amount: number) => Promise<void>;
+  purchaseTrack: (trackId: string, price: number) => Promise<boolean>;
+  purchaseScenario: (scenarioId: string, price: number) => Promise<boolean>;
+  isTrackUnlocked: (trackId: string) => boolean;
+  isScenarioUnlocked: (scenarioId: string) => boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -113,84 +121,19 @@ const DEFAULT_TAX_DOCS: TaxDocument[] = [
 ];
 
 const DEFAULT_LEASE_CHECKLIST: LeaseCheckItem[] = [
-  {
-    id: "l1",
-    category: "Before Signing",
-    label: "Read the entire lease (every page)",
-    checked: false,
-  },
-  {
-    id: "l2",
-    category: "Before Signing",
-    label: "Check lease end date and renewal terms",
-    checked: false,
-  },
-  {
-    id: "l3",
-    category: "Before Signing",
-    label: "Understand early termination fees",
-    checked: false,
-  },
-  {
-    id: "l4",
-    category: "Before Signing",
-    label: "Clarify what utilities are included",
-    checked: false,
-  },
-  {
-    id: "l5",
-    category: "Before Signing",
-    label: "Ask about pet policy and fees",
-    checked: false,
-  },
-  {
-    id: "l6",
-    category: "Before Signing",
-    label: "Verify security deposit amount and return policy",
-    checked: false,
-  },
-  {
-    id: "l7",
-    category: "Move-In",
-    label: "Do a full walkthrough and document all damage",
-    checked: false,
-  },
-  {
-    id: "l8",
-    category: "Move-In",
-    label: "Take timestamped photos of every room",
-    checked: false,
-  },
-  {
-    id: "l9",
-    category: "Move-In",
-    label: "Test all appliances, locks, and outlets",
-    checked: false,
-  },
-  {
-    id: "l10",
-    category: "Move-In",
-    label: "Get all damage documented in writing",
-    checked: false,
-  },
-  {
-    id: "l11",
-    category: "Ongoing",
-    label: "Know your landlord's maintenance contact",
-    checked: false,
-  },
-  {
-    id: "l12",
-    category: "Ongoing",
-    label: "Set up rent payment reminder",
-    checked: false,
-  },
-  {
-    id: "l13",
-    category: "Ongoing",
-    label: "Get renter's insurance (usually $10-15/month)",
-    checked: false,
-  },
+  { id: "l1", category: "Before Signing", label: "Read the entire lease (every page)", checked: false },
+  { id: "l2", category: "Before Signing", label: "Check lease end date and renewal terms", checked: false },
+  { id: "l3", category: "Before Signing", label: "Understand early termination fees", checked: false },
+  { id: "l4", category: "Before Signing", label: "Clarify what utilities are included", checked: false },
+  { id: "l5", category: "Before Signing", label: "Ask about pet policy and fees", checked: false },
+  { id: "l6", category: "Before Signing", label: "Verify security deposit amount and return policy", checked: false },
+  { id: "l7", category: "Move-In", label: "Do a full walkthrough and document all damage", checked: false },
+  { id: "l8", category: "Move-In", label: "Take timestamped photos of every room", checked: false },
+  { id: "l9", category: "Move-In", label: "Test all appliances, locks, and outlets", checked: false },
+  { id: "l10", category: "Move-In", label: "Get all damage documented in writing", checked: false },
+  { id: "l11", category: "Ongoing", label: "Know your landlord's maintenance contact", checked: false },
+  { id: "l12", category: "Ongoing", label: "Set up rent payment reminder", checked: false },
+  { id: "l13", category: "Ongoing", label: "Get renter's insurance (usually $10-15/month)", checked: false },
 ];
 
 const DEFAULT_BUDGET_ITEMS: BudgetItem[] = [
@@ -211,6 +154,9 @@ const STORAGE_KEYS = {
   BUDGET_ITEMS: "@adulting_budget_items",
   TAX_DOCUMENTS: "@adulting_tax_documents",
   LEASE_CHECKLIST: "@adulting_lease_checklist",
+  COINS: "@adulting_coins",
+  UNLOCKED_TRACKS: "@adulting_unlocked_tracks",
+  UNLOCKED_SCENARIOS: "@adulting_unlocked_scenarios",
 };
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
@@ -220,16 +166,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>(DEFAULT_BUDGET_ITEMS);
   const [taxDocuments, setTaxDocuments] = useState<TaxDocument[]>(DEFAULT_TAX_DOCS);
   const [leaseChecklist, setLeaseChecklist] = useState<LeaseCheckItem[]>(DEFAULT_LEASE_CHECKLIST);
+  const [coins, setCoins] = useState(0);
+  const [unlockedTracks, setUnlockedTracks] = useState<string[]>([]);
+  const [unlockedScenarios, setUnlockedScenarios] = useState<string[]>([]);
 
   useEffect(() => {
     (async () => {
-      const [onb, prof, lessons, budget, taxes, lease] = await Promise.all([
+      const [onb, prof, lessons, budget, taxes, lease, savedCoins, savedTracks, savedScenarios] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEYS.ONBOARDING),
         AsyncStorage.getItem(STORAGE_KEYS.PROFILE),
         AsyncStorage.getItem(STORAGE_KEYS.COMPLETED_LESSONS),
         AsyncStorage.getItem(STORAGE_KEYS.BUDGET_ITEMS),
         AsyncStorage.getItem(STORAGE_KEYS.TAX_DOCUMENTS),
         AsyncStorage.getItem(STORAGE_KEYS.LEASE_CHECKLIST),
+        AsyncStorage.getItem(STORAGE_KEYS.COINS),
+        AsyncStorage.getItem(STORAGE_KEYS.UNLOCKED_TRACKS),
+        AsyncStorage.getItem(STORAGE_KEYS.UNLOCKED_SCENARIOS),
       ]);
       if (onb) setOnboardingComplete(true);
       if (prof) setProfile(JSON.parse(prof));
@@ -237,6 +189,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (budget) setBudgetItems(JSON.parse(budget));
       if (taxes) setTaxDocuments(JSON.parse(taxes));
       if (lease) setLeaseChecklist(JSON.parse(lease));
+      if (savedCoins) setCoins(parseInt(savedCoins, 10));
+      if (savedTracks) setUnlockedTracks(JSON.parse(savedTracks));
+      if (savedScenarios) setUnlockedScenarios(JSON.parse(savedScenarios));
     })();
   }, []);
 
@@ -249,14 +204,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const completeLesson = useCallback(
     async (progress: LessonProgress) => {
+      const alreadyDone = completedLessons.some((l) => l.lessonId === progress.lessonId);
       const updated = [
         ...completedLessons.filter((l) => l.lessonId !== progress.lessonId),
         progress,
       ];
       setCompletedLessons(updated);
       await AsyncStorage.setItem(STORAGE_KEYS.COMPLETED_LESSONS, JSON.stringify(updated));
+
+      if (!alreadyDone) {
+        const earned = 10 + (progress.score >= 80 ? 5 : 0);
+        const newCoins = coins + earned;
+        setCoins(newCoins);
+        await AsyncStorage.setItem(STORAGE_KEYS.COINS, String(newCoins));
+      }
     },
-    [completedLessons]
+    [completedLessons, coins]
   );
 
   const updateBudgetItems = useCallback(async (items: BudgetItem[]) => {
@@ -299,6 +262,52 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [completedLessons]
   );
 
+  const addCoins = useCallback(async (amount: number) => {
+    setCoins((prev) => {
+      const next = prev + amount;
+      AsyncStorage.setItem(STORAGE_KEYS.COINS, String(next));
+      return next;
+    });
+  }, []);
+
+  const purchaseTrack = useCallback(
+    async (trackId: string, price: number): Promise<boolean> => {
+      if (coins < price) return false;
+      const newCoins = coins - price;
+      const newTracks = [...unlockedTracks, trackId];
+      setCoins(newCoins);
+      setUnlockedTracks(newTracks);
+      await AsyncStorage.setItem(STORAGE_KEYS.COINS, String(newCoins));
+      await AsyncStorage.setItem(STORAGE_KEYS.UNLOCKED_TRACKS, JSON.stringify(newTracks));
+      return true;
+    },
+    [coins, unlockedTracks]
+  );
+
+  const purchaseScenario = useCallback(
+    async (scenarioId: string, price: number): Promise<boolean> => {
+      if (coins < price) return false;
+      const newCoins = coins - price;
+      const newScenarios = [...unlockedScenarios, scenarioId];
+      setCoins(newCoins);
+      setUnlockedScenarios(newScenarios);
+      await AsyncStorage.setItem(STORAGE_KEYS.COINS, String(newCoins));
+      await AsyncStorage.setItem(STORAGE_KEYS.UNLOCKED_SCENARIOS, JSON.stringify(newScenarios));
+      return true;
+    },
+    [coins, unlockedScenarios]
+  );
+
+  const isTrackUnlocked = useCallback(
+    (trackId: string) => unlockedTracks.includes(trackId),
+    [unlockedTracks]
+  );
+
+  const isScenarioUnlocked = useCallback(
+    (scenarioId: string) => unlockedScenarios.includes(scenarioId),
+    [unlockedScenarios]
+  );
+
   return (
     <AppContext.Provider
       value={{
@@ -308,6 +317,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         budgetItems,
         taxDocuments,
         leaseChecklist,
+        coins,
+        unlockedTracks,
+        unlockedScenarios,
         completeOnboarding,
         completeLesson,
         updateBudgetItems,
@@ -315,6 +327,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         toggleLeaseItem,
         isLessonComplete,
         getTrackProgress,
+        addCoins,
+        purchaseTrack,
+        purchaseScenario,
+        isTrackUnlocked,
+        isScenarioUnlocked,
       }}
     >
       {children}

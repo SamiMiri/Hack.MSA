@@ -221,7 +221,7 @@ export default function LessonScreen() {
   const { trackId, lessonId } = useLocalSearchParams<{ trackId: string; lessonId: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { completeLesson } = useApp();
+  const { completeLesson, isLessonComplete } = useApp();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
@@ -281,6 +281,7 @@ export default function LessonScreen() {
   if (finished) {
     const quizCount = steps.filter((s) => s.type === "quiz").length;
     const score = quizCount > 0 ? Math.round((correctAnswers / quizCount) * 100) : 100;
+    const coinsEarned = 10 + (score >= 80 ? 5 : 0);
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.completedScreen, { paddingTop: topInset + 20, paddingBottom: bottomInset + 20 }]}>
@@ -292,8 +293,13 @@ export default function LessonScreen() {
             <Text style={[styles.completedSubtitle, { color: colors.mutedForeground }]}>
               {lesson.title}
             </Text>
+            <View style={[styles.coinsEarned, { backgroundColor: "#FFE66D18", borderColor: "#FFE66D50" }]}>
+              <Text style={styles.coinsEarnedIcon}>⭐</Text>
+              <Text style={[styles.coinsEarnedText, { color: "#D97706" }]}>+{coinsEarned} coins earned</Text>
+              {score >= 80 && <Text style={[styles.coinsBonus, { color: "#D97706" }]}> (includes +5 quiz bonus!)</Text>}
+            </View>
             {quizCount > 0 && (
-              <View style={[styles.scoreCard, { backgroundColor: track.color, marginTop: 20 }]}>
+              <View style={[styles.scoreCard, { backgroundColor: track.color, marginTop: 12 }]}>
                 <Text style={styles.scoreCardLabel}>Quiz Score</Text>
                 <Text style={styles.scoreCardNumber}>{score}%</Text>
                 <Text style={styles.scoreCardSub}>
@@ -563,6 +569,18 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
   },
+  coinsEarned: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginTop: 10,
+  },
+  coinsEarnedIcon: { fontSize: 16, marginRight: 4 },
+  coinsEarnedText: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  coinsBonus: { fontSize: 12, fontFamily: "Inter_500Medium" },
   completedScreen: {
     flex: 1,
     padding: 24,

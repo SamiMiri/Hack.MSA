@@ -5,27 +5,30 @@ import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
-import { tracks } from "@/data/tracks";
+import { tracks, FREE_LESSONS_COUNT } from "@/data/tracks";
 import { useColors } from "@/hooks/useColors";
 
 const MILESTONES = [
   { threshold: 1, label: "First Step", icon: "flag", color: "#FF6B6B" },
   { threshold: 3, label: "Getting Traction", icon: "zap", color: "#FFE66D" },
-  { threshold: 6, label: "Halfway There", icon: "star", color: "#4ECDC4" },
-  { threshold: 8, label: "Almost Done", icon: "award", color: "#A29BFE" },
-  { threshold: 10, label: "Adulting Pro", icon: "shield", color: "#2ED573" },
+  { threshold: 4, label: "Halfway There", icon: "star", color: "#4ECDC4" },
+  { threshold: 7, label: "Almost Done", icon: "award", color: "#A29BFE" },
+  { threshold: FREE_LESSONS_COUNT, label: "Adulting Pro", icon: "shield", color: "#2ED573" },
 ];
 
 export default function ProgressScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { completedLessons, getTrackProgress } = useApp();
+  const { completedLessons, getTrackProgress, coins } = useApp();
 
   const topInset = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const bottomInset = Platform.OS === "web" ? Math.max(insets.bottom, 34) : insets.bottom;
 
-  const totalLessons = tracks.reduce((sum, t) => sum + t.lessonsCount, 0);
-  const completedCount = completedLessons.length;
+  const freeTracks = tracks.filter((t) => !t.premium);
+  const totalLessons = FREE_LESSONS_COUNT;
+  const completedCount = completedLessons.filter((cl) =>
+    freeTracks.some((t) => t.id === cl.trackId)
+  ).length;
 
   const nextMilestone = MILESTONES.find((m) => m.threshold > completedCount);
   const lastMilestone = [...MILESTONES].reverse().find((m) => m.threshold <= completedCount);
@@ -38,16 +41,22 @@ export default function ProgressScreen() {
     >
       <View style={{ paddingTop: topInset + 16 }}>
         <Animated.View entering={FadeInDown.delay(0).springify()} style={styles.headerSection}>
-          <Text style={[styles.title, { color: colors.foreground }]}>Your Progress</Text>
+          <View style={styles.headerRow}>
+            <Text style={[styles.title, { color: colors.foreground }]}>Your Progress</Text>
+            <View style={[styles.coinBadge, { backgroundColor: "#FFE66D20", borderColor: "#FFE66D50" }]}>
+              <Text style={styles.coinIcon}>⭐</Text>
+              <Text style={[styles.coinCount, { color: "#D97706" }]}>{coins}</Text>
+            </View>
+          </View>
         </Animated.View>
 
         <Animated.View
           entering={FadeInDown.delay(80).springify()}
           style={[styles.overallCard, { backgroundColor: colors.primary }]}
         >
-          <Text style={styles.overallLabel}>Total Lessons Completed</Text>
+          <Text style={styles.overallLabel}>Free Lessons Completed</Text>
           <Text style={styles.overallNumber}>{completedCount}</Text>
-          <Text style={styles.overallSub}>out of {totalLessons} lessons</Text>
+          <Text style={styles.overallSub}>out of {totalLessons} free lessons</Text>
           <View style={styles.overallProgressBg}>
             <View
               style={[
@@ -62,8 +71,19 @@ export default function ProgressScreen() {
             </Text>
           )}
           {!nextMilestone && (
-            <Text style={styles.overallNextLabel}>You've completed all available lessons!</Text>
+            <Text style={styles.overallNextLabel}>You've completed all free lessons! 🎉</Text>
           )}
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(120).springify()} style={[styles.earnCard, { backgroundColor: colors.card, borderColor: "#FFE66D50", borderWidth: 1 }]}>
+          <View style={styles.earnRow}>
+            <Text style={styles.coinIcon}>⭐</Text>
+            <View style={styles.earnInfo}>
+              <Text style={[styles.earnTitle, { color: colors.foreground }]}>Skill Coins</Text>
+              <Text style={[styles.earnSub, { color: colors.mutedForeground }]}>Earn by completing lessons & scenarios · Spend in the Learn & Play tabs</Text>
+            </View>
+            <Text style={[styles.earnBalance, { color: "#D97706" }]}>{coins}</Text>
+          </View>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(160).springify()} style={styles.section}>
@@ -111,7 +131,7 @@ export default function ProgressScreen() {
 
         <Animated.View entering={FadeInDown.delay(240).springify()} style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Track Progress</Text>
-          {tracks.map((track, i) => {
+          {freeTracks.map((track) => {
             const progress = getTrackProgress(track.id, track.lessonsCount);
             const done = Math.round(progress * track.lessonsCount);
             const pct = Math.round(progress * 100);
@@ -210,7 +230,19 @@ export default function ProgressScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   headerSection: { paddingHorizontal: 20, marginBottom: 16 },
+  headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   title: { fontSize: 28, fontWeight: "700", fontFamily: "Inter_700Bold" },
+  coinBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  coinIcon: { fontSize: 14 },
+  coinCount: { fontSize: 15, fontFamily: "Inter_700Bold" },
   overallCard: {
     marginHorizontal: 20,
     borderRadius: 20,
@@ -229,6 +261,17 @@ const styles = StyleSheet.create({
   },
   overallProgressBar: { height: 8, backgroundColor: "#fff", borderRadius: 4 },
   overallNextLabel: { fontSize: 12, fontFamily: "Inter_500Medium", color: "rgba(255,255,255,0.85)" },
+  earnCard: {
+    marginHorizontal: 20,
+    marginTop: 12,
+    borderRadius: 14,
+    padding: 14,
+  },
+  earnRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  earnInfo: { flex: 1 },
+  earnTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold", marginBottom: 2 },
+  earnSub: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 16 },
+  earnBalance: { fontSize: 22, fontFamily: "Inter_700Bold" },
   section: { paddingHorizontal: 20, paddingTop: 24 },
   sectionTitle: { fontSize: 19, fontWeight: "700", fontFamily: "Inter_700Bold", marginBottom: 14 },
   milestoneRow: { flexDirection: "row", justifyContent: "space-between", gap: 8 },

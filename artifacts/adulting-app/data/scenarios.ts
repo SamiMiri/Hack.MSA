@@ -33,6 +33,8 @@ export interface Scenario {
   startMoney: number;
   startSceneId: string;
   scenes: Record<string, Scene>;
+  premium?: boolean;
+  price?: number;
 }
 
 export const SCENARIOS: Scenario[] = [
@@ -561,6 +563,494 @@ export const SCENARIOS: Scenario[] = [
         id: "stress_ending", title: "HARD ENDING — Burnout",
         text: "You pushed too hard for too long. The stress finally caught up with you. You're taking a long break from everything to recover.",
         choices: [], isEnding: true, endingKind: 'bad', endingTitle: "HARD ENDING — Burnout"
+      }
+    }
+  },
+  {
+    id: "apartment",
+    name: "First Apartment",
+    who: "Maya Chen · 22 · barista + part-time student",
+    desc: "You need to sign a lease in 3 days. One landlord seems sketchy. One apartment smells weird. And your roommate just bailed. Branching paths through deposits, red flags, and your first rent payment.",
+    estimatedTime: "~10 decisions",
+    startMoney: 2200,
+    startSceneId: "start",
+    premium: true,
+    price: 50,
+    scenes: {
+      start: {
+        id: "start",
+        title: "Saturday · 10:14 AM",
+        text: "You are Maya Chen. Twenty-two. You need to be out of your parents' house by the end of the month — your mom made that very clear over dinner. You have $2,200 saved. Your best friend Priya was going to be your roommate, but she just texted you: 'sorry maya. i got a job in portland. leaving tuesday.'\n\nYou have three apartments lined up to see today. One Craigslist listing from a 'landlord' named Dave who won't show ID. One overpriced studio in a great neighborhood. One shared 2BR with a stranger named Felix, dirt cheap, smells a little like cigarettes.\n\nWhere do you start?",
+        choices: [
+          {
+            id: "c1", label: "Tour the Craigslist apartment first — Dave says the deal won't last.",
+            kind: 'bad',
+            feedback: "High-pressure urgency is a classic rental scam signal. Legitimate landlords don't pressure you to decide same-day without documentation.",
+            deltaStress: 10, deltaKnowledge: 2, deltaScore: -5,
+            addFlags: ["dave_risk"],
+            nextId: "dave_tour"
+          },
+          {
+            id: "c2", label: "Tour the overpriced studio — good neighborhood, at least it's safe.",
+            kind: 'meh',
+            feedback: "Safe choice, but 'safe' costs money. Let's see what you're actually working with.",
+            deltaKnowledge: 3,
+            nextId: "studio_tour"
+          },
+          {
+            id: "c3", label: "Tour the shared place with Felix first — you need to know if it's livable.",
+            kind: 'good',
+            feedback: "Smart. Cheapest option first. If it's tolerable, it changes your whole calculation.",
+            deltaKnowledge: 4, deltaScore: 8,
+            nextId: "felix_tour"
+          }
+        ]
+      },
+      dave_tour: {
+        id: "dave_tour",
+        title: "Dave's Apartment",
+        text: "Dave shows you around a 1BR that's actually pretty nice. He says he needs first month, last month, AND a security deposit — $3,900 total — in cash or Zelle before he'll hold it.\n\n'My last tenant just left, I've had 40 people look at it.' He won't show you a lease yet — 'I'll email it tonight.'\n\nYour gut says something is off.",
+        choices: [
+          {
+            id: "d1", label: "Pay the $3,900. The apartment is perfect and you're desperate.",
+            kind: 'bad',
+            feedback: "This is a rental scam. You just paid $3,900 to someone who may not own this property. Dave disappears. You have no lease, no keys, no money.",
+            deltaMoney: -3900, deltaStress: 40, deltaScore: -25,
+            addFlags: ["scammed_rental"],
+            nextId: "scam_ending"
+          },
+          {
+            id: "d2", label: "Ask to see his ID and proof that he owns or manages the property.",
+            kind: 'good',
+            feedback: "Correct move. Legitimate landlords can provide this. If they refuse, walk immediately.",
+            deltaKnowledge: 5, deltaScore: 12,
+            nextId: "dave_id"
+          },
+          {
+            id: "d3", label: "Say you'll think about it and leave.",
+            kind: 'meh',
+            feedback: "Better than paying, but you learned nothing. Trust your instincts faster next time.",
+            deltaKnowledge: 2, deltaScore: 2,
+            nextId: "studio_tour"
+          }
+        ]
+      },
+      dave_id: {
+        id: "dave_id",
+        title: "Dave's True Colors",
+        text: "Dave gets flustered. He says his ID is 'at home' and his 'management company handles the paperwork.' He says he can't show the actual deed because 'it's complicated.'\n\nHe offers to drop the deposit to $500 if you Zelle him right now.",
+        choices: [
+          {
+            id: "di1", label: "Walk away. This is a scam.",
+            kind: 'good',
+            feedback: "100% correct. You just saved yourself potentially thousands. Rental fraud is the #1 Craigslist scam.",
+            deltaKnowledge: 5, deltaScore: 15,
+            nextId: "studio_tour"
+          },
+          {
+            id: "di2", label: "Send $500 to hold it — that's not much risk.",
+            kind: 'bad',
+            feedback: "$500 gone. 'Dave' blocks you. Always verify landlord identity and property ownership before sending a single dollar.",
+            deltaMoney: -500, deltaStress: 25, deltaScore: -15,
+            addFlags: ["lost_deposit"],
+            nextId: "studio_tour"
+          }
+        ]
+      },
+      studio_tour: {
+        id: "studio_tour",
+        title: "The Studio",
+        text: "The studio is small but clean. Great natural light. The landlord — Jennifer — has a proper lease ready, shows you her LLC documentation, and lets you read everything.\n\nRent is $1,350/month. That's 61% of your $2,200 take-home. Way above the 30% rule, but Jennifer says she can do $1,200 if you sign a 14-month lease instead of 12.\n\nWhat do you do?",
+        choices: [
+          {
+            id: "s1", label: "Sign the 14-month lease for $1,200 — $150 savings is worth it.",
+            kind: 'meh',
+            feedback: "Still 55% of your income on rent. That's tight. But $1,200 × 14 months locks you in until next fall. Make sure you want to stay here that long.",
+            deltaMoney: -2400, deltaKnowledge: 3, deltaScore: 4,
+            addFlags: ["studio_signed"],
+            nextId: "deposit_moment"
+          },
+          {
+            id: "s2", label: "Counter-offer $1,100/month on a 12-month lease.",
+            kind: 'good',
+            feedback: "Negotiating rent is completely normal. Landlords expect it. Worst case she says no.",
+            deltaKnowledge: 5, deltaScore: 10,
+            nextId: "negotiate_studio"
+          },
+          {
+            id: "s3", label: "Pass — it's too expensive regardless. Go see Felix's place.",
+            kind: 'good',
+            feedback: "Financially smart. But have backup options before you fully commit.",
+            deltaKnowledge: 3, deltaScore: 8,
+            nextId: "felix_tour"
+          }
+        ]
+      },
+      negotiate_studio: {
+        id: "negotiate_studio",
+        title: "The Counter",
+        text: "Jennifer thinks for a moment. 'I can do $1,175 on a 12-month. That's my final number.'\n\nThat's $25 more than you wanted, but $175 less than her asking price. The lease is clean, the landlord is professional, and you read every page.",
+        choices: [
+          {
+            id: "n1", label: "Take it. $1,175 on 12 months.",
+            kind: 'good',
+            feedback: "Good deal. You saved $175/month compared to the original ask. Always negotiate.",
+            deltaMoney: -2350, deltaKnowledge: 4, deltaScore: 15,
+            addFlags: ["studio_negotiated"],
+            nextId: "deposit_moment"
+          },
+          {
+            id: "n2", label: "Push harder for $1,100. Hold your ground.",
+            kind: 'meh',
+            feedback: "Jennifer politely declines. You take the $1,200/14-month deal or walk. Sometimes the first counter is the best you'll get.",
+            deltaKnowledge: 2, deltaScore: 2,
+            nextId: "deposit_moment"
+          }
+        ]
+      },
+      felix_tour: {
+        id: "felix_tour",
+        title: "Felix's Place",
+        text: "Felix is 24, works in logistics, seems normal. The 2BR is $1,500 total — $750 each. That's 34% of your income. Manageable.\n\nThe cigarette smell is from the previous tenant, Felix says. He's been airing it out. The landlord seems legit — she's a 55-year-old retired teacher named Carolyn who lives downstairs.\n\nBut you've never lived with a stranger.",
+        choices: [
+          {
+            id: "f1", label: "Say yes on the spot. $750 is great and Felix seems fine.",
+            kind: 'meh',
+            feedback: "Financially smart, but get a roommate agreement in writing. 'Felix seems fine' has started many horror stories.",
+            deltaKnowledge: 2, deltaScore: 5,
+            addFlags: ["felix_place"],
+            nextId: "roommate_agreement"
+          },
+          {
+            id: "f2", label: "Ask for a few days to get references from Felix's previous roommates.",
+            kind: 'good',
+            feedback: "Smart. A quick reference check takes 15 minutes and can save you months of misery.",
+            deltaKnowledge: 5, deltaScore: 12,
+            addFlags: ["checked_felix"],
+            nextId: "felix_references"
+          },
+          {
+            id: "f3", label: "Pass — you'd rather live alone than with a stranger.",
+            kind: 'meh',
+            feedback: "Valid. But $750 vs $1,175 is $5,100/year. That's a meaningful difference. Consider it carefully.",
+            deltaKnowledge: 2,
+            nextId: "studio_tour"
+          }
+        ]
+      },
+      felix_references: {
+        id: "felix_references",
+        title: "The References",
+        text: "Felix gives you two references. You text both. One says 'Felix is great, low-key, cleans up after himself.' The other says 'Nice guy but plays music loud late sometimes.'\n\nCarolyn the landlord walks you through the place again. Everything checks out. She shows you the lease — it's short, fair, and mentions a 'quiet hours' clause after 10pm.",
+        choices: [
+          {
+            id: "fr1", label: "Sign. This is the right move.",
+            kind: 'good',
+            feedback: "You did the work. References checked, landlord verified, lease reviewed. This is how it's done.",
+            deltaMoney: -1500, deltaKnowledge: 5, deltaScore: 18,
+            addFlags: ["felix_place", "felix_verified"],
+            nextId: "deposit_moment"
+          },
+          {
+            id: "fr2", label: "Negotiate — ask Carolyn to lower rent to $680/each.",
+            kind: 'good',
+            feedback: "Nothing wrong with asking. Carolyn says she can do $720/each. You take it.",
+            deltaMoney: -1440, deltaKnowledge: 4, deltaScore: 14,
+            addFlags: ["felix_place", "rent_negotiated"],
+            nextId: "deposit_moment"
+          }
+        ]
+      },
+      roommate_agreement: {
+        id: "roommate_agreement",
+        title: "Move-In Day",
+        text: "You're about to sign the lease. Carolyn asks if you and Felix want to create a roommate agreement — she has a template. Felix shrugs. 'Up to you.'\n\nA roommate agreement covers: who pays what, guest policies, chores, quiet hours, and what happens if someone wants to leave early.",
+        choices: [
+          {
+            id: "ra1", label: "Sign a roommate agreement. Cover everything.",
+            kind: 'good',
+            feedback: "This is the adult move. Roommate disputes are one of the most common causes of lease breaks and early move-outs. Written agreements prevent 90% of conflicts.",
+            deltaKnowledge: 5, deltaScore: 15,
+            addFlags: ["roommate_agreement_signed"],
+            nextId: "movein_ending"
+          },
+          {
+            id: "ra2", label: "Skip it — Felix and you will just work it out.",
+            kind: 'meh',
+            feedback: "Probably fine. But 'we'll figure it out' has a poor track record with shared housing. At minimum, text-message an agreement so something is documented.",
+            deltaKnowledge: 2, deltaScore: 2,
+            nextId: "movein_ending"
+          }
+        ]
+      },
+      deposit_moment: {
+        id: "deposit_moment",
+        title: "The Security Deposit",
+        text: "Your new landlord asks for a $1,200 security deposit. She says she'll take it by check or cash.\n\nBefore you hand it over — do you know your rights?",
+        choices: [
+          {
+            id: "dm1", label: "Pay it and don't worry — it's just standard.",
+            kind: 'meh',
+            feedback: "You paid it, but without documentation you're vulnerable. Always request a receipt AND a walkthrough checklist.",
+            deltaKnowledge: 2, deltaScore: 2,
+            deltaMoney: -1200,
+            nextId: "walkthrough"
+          },
+          {
+            id: "dm2", label: "Pay it, but request a written receipt and ask about the state's deposit return timeline.",
+            kind: 'good',
+            feedback: "Most states require landlords to return deposits within 14-30 days with an itemized list of deductions. Knowing this before you move in puts you in control.",
+            deltaKnowledge: 6, deltaScore: 15,
+            deltaMoney: -1200,
+            nextId: "walkthrough"
+          }
+        ]
+      },
+      walkthrough: {
+        id: "walkthrough",
+        title: "Move-In Day",
+        text: "Keys in hand. The landlord offers to do a walkthrough checklist with you — noting any existing damage before you move in.\n\nIt'll take about 20 minutes. Your friends with the moving truck are waiting outside.",
+        choices: [
+          {
+            id: "w1", label: "Do the full walkthrough. Document everything.",
+            kind: 'good',
+            feedback: "This single step could save you your entire deposit when you move out. Pre-existing damage documented = not your problem when you leave.",
+            deltaKnowledge: 5, deltaScore: 18,
+            addFlags: ["walkthrough_done"],
+            nextId: "movein_ending"
+          },
+          {
+            id: "w2", label: "Skip it — you can tell the landlord about damage later if you notice it.",
+            kind: 'bad',
+            feedback: "Big mistake. 'Later' becomes he-said-she-said at move-out. When you leave, undocumented damage becomes your bill. Always do the walkthrough.",
+            deltaKnowledge: 2, deltaScore: -8,
+            addFlags: ["no_walkthrough"],
+            nextId: "movein_ending"
+          }
+        ]
+      },
+      scam_ending: {
+        id: "scam_ending",
+        title: "HARD ENDING — Rental Scam",
+        text: "Dave is gone. His number is disconnected. The real owner of the apartment has no idea who you are.\n\nYou're out $3,900. You have nowhere to live. And you learned — the hard way — that urgency + cash + no documentation = scam.\n\nYou find a new place two weeks later. It cost you more than money.",
+        choices: [], isEnding: true, endingKind: 'bad', endingTitle: "HARD ENDING — Rental Scam"
+      },
+      movein_ending: {
+        id: "movein_ending",
+        title: "GOOD ENDING — Keys in Hand",
+        text: "You did it. New apartment. Your own space.\n\nYou checked the landlord's credentials, read the lease, documented the condition at move-in, and know your deposit rights. Most people skip all of that.\n\nWelcome to your first real home.",
+        choices: [], isEnding: true, endingKind: 'good', endingTitle: "GOOD ENDING — Keys in Hand"
+      }
+    }
+  },
+  {
+    id: "jobday",
+    name: "Job Offer Day",
+    who: "Marcus Webb · 23 · recent grad in accounting",
+    desc: "You have a job offer that expires in 48 hours. The salary feels low. Your benefits choices are confusing. And your current manager just hinted at a counter-offer. Navigate salary negotiation, benefits enrollment, and competing offers.",
+    estimatedTime: "~10 decisions",
+    startMoney: 800,
+    startSceneId: "offer_arrives",
+    premium: true,
+    price: 50,
+    scenes: {
+      offer_arrives: {
+        id: "offer_arrives",
+        title: "Tuesday · 4:02 PM",
+        text: "You are Marcus Webb. Twenty-three. Your accounting degree cost $68,000 in loans. You've been temping for seven months.\n\nThis afternoon: an email from Hendricks & Associates. Offer letter attached. $47,500 base. Benefits start day one. 48 hours to respond.\n\nYou open the PDF. You expected $50k-$55k based on your research. $47,500 feels low. But it's real. And your temp contract ends Friday.\n\nWhat do you do first?",
+        choices: [
+          {
+            id: "c1", label: "Accept immediately — it's a real job and your contract ends Friday.",
+            kind: 'meh',
+            feedback: "Understandable under pressure. But you've left potential money on the table without even trying. Companies budget room for negotiation.",
+            deltaScore: 2, deltaKnowledge: 1,
+            addFlags: ["accepted_no_negotiate"],
+            nextId: "benefits_enrollment"
+          },
+          {
+            id: "c2", label: "Email back thanking them and ask for 48 hours to review.",
+            kind: 'good',
+            feedback: "Standard and professional. Always get full time to review. No legitimate employer rescind offers for asking.",
+            deltaScore: 10, deltaKnowledge: 4,
+            nextId: "research_salary"
+          },
+          {
+            id: "c3", label: "Call your manager and hint you have an offer to see if they'll fight for you.",
+            kind: 'meh',
+            feedback: "Counter-offers are complicated — companies often expect you to leave anyway and you may end up without either job if it backfires.",
+            deltaStress: 15, deltaKnowledge: 2,
+            addFlags: ["told_manager"],
+            nextId: "counter_offer_moment"
+          }
+        ]
+      },
+      research_salary: {
+        id: "research_salary",
+        title: "The Research",
+        text: "You spend an hour on LinkedIn Salary, Glassdoor, and the BLS occupational data. Entry-level accountants in your city: median $52,000. $47,500 is in the 35th percentile.\n\nYou also look at the benefits package more carefully:\n• Health: HDHP ($80/mo employee contribution) + HSA seed of $500\n• 401k: 4% match, vests immediately\n• PTO: 15 days\n• Remote: 2 days/week after 90-day probation\n\nThe 4% match on $47,500 = $1,900 in free money. Total comp is closer to $51,000+.",
+        choices: [
+          {
+            id: "r1", label: "Counter at $52,000 — market median for your role and city.",
+            kind: 'good',
+            feedback: "Backed by data. Professional and reasonable. This is exactly how to negotiate.",
+            deltaScore: 15, deltaKnowledge: 5,
+            nextId: "negotiation_response"
+          },
+          {
+            id: "r2", label: "Counter at $58,000 — shoot high so there's room to negotiate.",
+            kind: 'meh',
+            feedback: "Too far above market — 23% over their offer. This can signal you don't understand the role's market value.",
+            deltaKnowledge: 2, deltaScore: 2,
+            nextId: "negotiation_too_high"
+          },
+          {
+            id: "r3", label: "Decide the total comp is actually fair and accept at $47,500.",
+            kind: 'good',
+            feedback: "With benefits factored in, $51k+ total comp is reasonable. This is a thoughtful decision — not a weak one.",
+            deltaScore: 12, deltaKnowledge: 6,
+            addFlags: ["accepted_informed"],
+            nextId: "benefits_enrollment"
+          }
+        ]
+      },
+      negotiation_response: {
+        id: "negotiation_response",
+        title: "The Counter",
+        text: "You send a polished email: 'I'm very excited about this opportunity. Based on current market data for entry-level accounting roles in this area, I was expecting something closer to $52,000. Is there flexibility there?'\n\nThey come back two hours later: 'We can do $49,500. That's the top of the band for this level.'\n\nNot $52k. But $2,000 more than the original offer.",
+        choices: [
+          {
+            id: "n1", label: "Accept $49,500. You moved it $2,000 with one email.",
+            kind: 'good',
+            feedback: "That's $2,000/year for a 15-minute email. Over 3 years, $6,000 in extra income. Always negotiate.",
+            deltaMoney: 0, deltaScore: 18, deltaKnowledge: 4,
+            addFlags: ["negotiated_up"],
+            nextId: "benefits_enrollment"
+          },
+          {
+            id: "n2", label: "Push again for $51,000 — you know the market.",
+            kind: 'meh',
+            feedback: "They hold firm at $49,500 and note that non-monetary benefits are also strong. Pushing past 'top of band' rarely works and can sour the relationship.",
+            deltaKnowledge: 3, deltaScore: 4,
+            nextId: "benefits_enrollment"
+          }
+        ]
+      },
+      negotiation_too_high: {
+        id: "negotiation_too_high",
+        title: "The Response",
+        text: "HR replies: 'We appreciate your enthusiasm, but $58,000 is significantly above the range for this position. Our offer of $47,500 reflects the market for entry-level accounting. We hope you'll still consider the role.'\n\nThe door is still open — but you've weakened your position.",
+        choices: [
+          {
+            id: "th1", label: "Accept $47,500 — you pushed too high and now have no leverage.",
+            kind: 'meh',
+            feedback: "You'd have been better off starting at $52k. But you still have the job. Learn the lesson for next time.",
+            deltaScore: 4, deltaKnowledge: 4,
+            nextId: "benefits_enrollment"
+          },
+          {
+            id: "th2", label: "Counter at $51,000 with market data attached.",
+            kind: 'good',
+            feedback: "Recovering with research shows professionalism. They settle at $49,000. Your data saved you $1,500.",
+            deltaScore: 8, deltaKnowledge: 5,
+            addFlags: ["recovered_negotiation"],
+            nextId: "benefits_enrollment"
+          }
+        ]
+      },
+      counter_offer_moment: {
+        id: "counter_offer_moment",
+        title: "Your Manager's Response",
+        text: "Your manager calls you into her office. 'We've been thinking about converting you to full-time. I want to make you an offer: $44,000 with 2 weeks PTO.'\n\nThat's $3,500 less than the Hendricks offer. But it's familiar. It's easy.",
+        choices: [
+          {
+            id: "co1", label: "Take the counter-offer. Familiarity has value.",
+            kind: 'meh',
+            feedback: "$44k vs $49.5k = $5,500/year less. Over 5 years that's $27,500. Familiarity is real — but so is that math.",
+            deltaScore: 3, deltaKnowledge: 2,
+            addFlags: ["took_counter"],
+            nextId: "counter_ending"
+          },
+          {
+            id: "co2", label: "Tell her you need to compare both offers fully before deciding.",
+            kind: 'good',
+            feedback: "Professional and fair. You have 48 hours. Use them.",
+            deltaScore: 12, deltaKnowledge: 5,
+            nextId: "research_salary"
+          }
+        ]
+      },
+      benefits_enrollment: {
+        id: "benefits_enrollment",
+        title: "Day One — Benefits Enrollment",
+        text: "First day at Hendricks. HR walks you through benefits enrollment — you have 30 days to choose. Options:\n\nHealth: HDHP ($80/mo, $1,500 deductible) + $500 HSA seed, or PPO ($210/mo, $500 deductible).\n\nYou're 23. Generally healthy. No prescriptions. One gym injury two years ago.\n\nYou need to choose today.",
+        choices: [
+          {
+            id: "b1", label: "Choose HDHP + HSA. Lower premium, tax-free savings account.",
+            kind: 'good',
+            feedback: "Smart for a healthy young adult. You save $130/month in premiums = $1,560/year. The HSA lets you invest the difference tax-free. Only bad if you have unexpected major medical needs.",
+            deltaKnowledge: 6, deltaScore: 15,
+            addFlags: ["chose_hdhp"],
+            nextId: "retirement_choice"
+          },
+          {
+            id: "b2", label: "Choose PPO. Lower deductible = more protection.",
+            kind: 'meh',
+            feedback: "More expensive monthly but more predictable costs. Fine if you value certainty over optimization. Not wrong, just costs $1,560/year more in premiums.",
+            deltaKnowledge: 3, deltaScore: 5,
+            nextId: "retirement_choice"
+          },
+          {
+            id: "b3", label: "Skip enrollment for now — you have 30 days, right?",
+            kind: 'bad',
+            feedback: "The 30-day window seems long but it disappears. Many people forget and end up uninsured for a full year until the next open enrollment. Set a calendar alert immediately.",
+            deltaStress: 15, deltaKnowledge: 2, deltaScore: -8,
+            addFlags: ["forgot_enrollment"],
+            nextId: "retirement_choice"
+          }
+        ]
+      },
+      retirement_choice: {
+        id: "retirement_choice",
+        title: "The 401k Question",
+        text: "HR asks how much you want to contribute to your 401k. The employer matches 4% of salary dollar-for-dollar.\n\nSome options she lays out:\n• 0% — keep all your paycheck now\n• 4% — max out the free money match\n• 10% — aggressive savings mode",
+        choices: [
+          {
+            id: "r1", label: "0% — I have student loans to pay, I can't afford retirement savings.",
+            kind: 'bad',
+            feedback: "You're leaving $1,900/year of free money on the table. Even if you only contribute 4%, the match is immediate 100% return. That beats student loan interest math in almost every case.",
+            deltaScore: -10, deltaKnowledge: 3,
+            addFlags: ["no_401k"],
+            nextId: "job_ending"
+          },
+          {
+            id: "r2", label: "4% — capture the full employer match.",
+            kind: 'good',
+            feedback: "The right move for most people. $1,900 free from your employer every year. Tax-deferred growth. Starting at 23 is enormously powerful due to compound growth.",
+            deltaScore: 18, deltaKnowledge: 6,
+            addFlags: ["matched_401k"],
+            nextId: "job_ending"
+          },
+          {
+            id: "r3", label: "10% — I want to build wealth aggressively.",
+            kind: 'good',
+            feedback: "Excellent if your budget allows. You're reducing your take-home by ~$400/month — make sure your expenses are covered. But starting high early is a great habit.",
+            deltaScore: 15, deltaKnowledge: 5,
+            addFlags: ["maxing_401k"],
+            nextId: "job_ending"
+          }
+        ]
+      },
+      counter_ending: {
+        id: "counter_ending",
+        title: "MEDIOCRE ENDING — Stayed Put",
+        text: "Marcus, 23. Same desk. Familiar faces. $44,000.\n\nSix months later you found out Hendricks offered the role to someone else at $52,000.\n\nYou don't regret it. But you wonder.",
+        choices: [], isEnding: true, endingKind: 'meh', endingTitle: "MEDIOCRE ENDING — Stayed Put"
+      },
+      job_ending: {
+        id: "job_ending",
+        title: "GOOD ENDING — Employed & Building",
+        text: "Marcus Webb, 23. Real salary. Real benefits. 401k contributions compounding.\n\nYou negotiated, you read the offer, you made an informed choice on health insurance. Most 23-year-olds don't do any of that.\n\nThe student loans are still there. But so is the plan.",
+        choices: [], isEnding: true, endingKind: 'good', endingTitle: "GOOD ENDING — Employed & Building"
       }
     }
   }

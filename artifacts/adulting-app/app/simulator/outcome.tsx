@@ -12,6 +12,7 @@ import {
 import Animated, { FadeInDown, FadeInUp, ZoomIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useApp } from "@/context/AppContext";
 import { useGame } from "@/context/GameContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -49,6 +50,7 @@ export default function OutcomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { currentScenario, currentSceneId, stats, flags, calculateRating, returnToMenu, replayScenario } = useGame();
+  const { addCoins } = useApp();
 
   const topInset = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const bottomInset = Platform.OS === "web" ? Math.max(insets.bottom, 34) : insets.bottom;
@@ -62,6 +64,7 @@ export default function OutcomeScreen() {
         ? Haptics.NotificationFeedbackType.Success
         : Haptics.NotificationFeedbackType.Error
     );
+    addCoins(20);
   }, []);
 
   const ratingConfig = {
@@ -112,6 +115,10 @@ export default function OutcomeScreen() {
         <Text style={[styles.ratingTitle, { color: ratingConfig.color }]}>
           {ratingConfig.label}
         </Text>
+        <View style={styles.coinReward}>
+          <Text style={styles.coinRewardIcon}>⭐</Text>
+          <Text style={styles.coinRewardText}>+20 coins earned</Text>
+        </View>
       </Animated.View>
 
       {/* Ending text */}
@@ -200,7 +207,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   ratingLabel: { fontSize: 11, fontFamily: "Inter_700Bold", letterSpacing: 1.5, marginBottom: 6 },
-  ratingTitle: { fontSize: 36, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  ratingTitle: { fontSize: 36, fontFamily: "Inter_700Bold", letterSpacing: -0.5, marginBottom: 8 },
+  coinReward: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#FFE66D20",
+    borderWidth: 1,
+    borderColor: "#FFE66D50",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginTop: 4,
+  },
+  coinRewardIcon: { fontSize: 14 },
+  coinRewardText: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#D97706" },
   card: {
     marginHorizontal: 16,
     marginBottom: 12,
