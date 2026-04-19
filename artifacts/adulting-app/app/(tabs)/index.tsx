@@ -13,6 +13,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TrackCard } from "@/components/TrackCard";
 import { useApp } from "@/context/AppContext";
+import { useTheme } from "@/context/ThemeContext";
 import { tracks } from "@/data/tracks";
 import { useColors } from "@/hooks/useColors";
 
@@ -26,6 +27,7 @@ export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { profile, getTrackProgress, completedLessons } = useApp();
+  const { resolvedTheme, toggleTheme } = useTheme();
 
   const topInset = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const bottomInset = Platform.OS === "web" ? Math.max(insets.bottom, 34) : insets.bottom;
@@ -48,13 +50,26 @@ export default function HomeScreen() {
       showsVerticalScrollIndicator={false}
     >
       <View style={[styles.heroSection, { paddingTop: topInset + 16 }]}>
-        <Animated.View entering={FadeInDown.delay(0).springify()}>
-          <Text style={[styles.greeting, { color: colors.mutedForeground }]}>
-            {profile?.stage ? greetings[profile.stage] ?? "Welcome" : "Welcome back"}
-          </Text>
-          <Text style={[styles.title, { color: colors.foreground }]}>
-            Let's get adulting
-          </Text>
+        <Animated.View entering={FadeInDown.delay(0).springify()} style={styles.heroHeader}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.greeting, { color: colors.mutedForeground }]}>
+              {profile?.stage ? greetings[profile.stage] ?? "Welcome" : "Welcome back"}
+            </Text>
+            <Text style={[styles.title, { color: colors.foreground }]}>
+              Let's get adulting
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={toggleTheme}
+            style={[styles.themeToggle, { backgroundColor: colors.muted, borderColor: colors.border }]}
+            activeOpacity={0.7}
+          >
+            <Feather
+              name={resolvedTheme === "dark" ? "sun" : "moon"}
+              size={18}
+              color={resolvedTheme === "dark" ? "#FFE66D" : colors.mutedForeground}
+            />
+          </TouchableOpacity>
         </Animated.View>
 
         <Animated.View
@@ -161,6 +176,20 @@ const styles = StyleSheet.create({
   heroSection: {
     paddingHorizontal: 20,
     paddingBottom: 4,
+  },
+  heroHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 0,
+  },
+  themeToggle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 4,
   },
   greeting: {
     fontSize: 14,
