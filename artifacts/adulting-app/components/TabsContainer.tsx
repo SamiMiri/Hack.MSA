@@ -21,6 +21,7 @@ import SimulateScreen from "@/app/(tabs)/simulate";
 import ToolsScreen from "@/app/(tabs)/tools";
 import ProgressScreen from "@/app/(tabs)/progress";
 import SettingsScreen from "@/app/(tabs)/settings";
+import ProfileScreen from "@/app/(tabs)/profile";
 
 const MAIN_TABS: {
   name: TabName;
@@ -38,6 +39,7 @@ const MORE_ITEMS: {
   icon: React.ComponentProps<typeof Feather>["name"];
   tab: TabName;
 }[] = [
+  { label: "Profile", icon: "user", tab: "profile" },
   { label: "Tools", icon: "tool", tab: "tools" },
   { label: "Progress", icon: "bar-chart-2", tab: "progress" },
   { label: "Settings", icon: "settings", tab: "settings" },
@@ -51,6 +53,7 @@ function TabContent({ activeTab }: { activeTab: TabName }) {
     case "tools": return <ToolsScreen />;
     case "progress": return <ProgressScreen />;
     case "settings": return <SettingsScreen />;
+    case "profile": return <ProfileScreen />;
     default: return <HomeScreen />;
   }
 }

@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useState } from "react";
 
-export type TabName = "home" | "learn" | "simulate" | "tools" | "progress" | "settings";
+export type TabName = "home" | "learn" | "simulate" | "tools" | "progress" | "settings" | "profile";
 
 export type AppScreen =
   | { name: "start" }
