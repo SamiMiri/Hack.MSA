@@ -27,7 +27,7 @@ function RootLayoutNav() {
 
   useEffect(() => {
     if (!onboardingComplete) {
-      router.replace("/onboarding");
+      router.replace("/start");
     } else {
       router.replace("/(tabs)");
     }
@@ -35,6 +35,7 @@ function RootLayoutNav() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="start" options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="track/[id]" options={{ headerShown: false, presentation: "card" }} />
