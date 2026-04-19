@@ -9,7 +9,11 @@
       "Bash(npx -y typescript@5.9 --noEmit --jsx react-native --esModuleInterop --moduleResolution node --target es2020 --module esnext --skipLibCheck App.tsx)",
       "Bash(npm view *)",
       "Bash(npm install *)",
-      "Bash(./node_modules/.bin/tsc --noEmit --jsx react-native --esModuleInterop --moduleResolution node --target es2020 --module esnext --skipLibCheck --strict App.tsx)"
+      "Bash(./node_modules/.bin/tsc --noEmit --jsx react-native --esModuleInterop --moduleResolution node --target es2020 --module esnext --skipLibCheck --strict App.tsx)",
+      "Bash(./node_modules/.bin/tsc --noEmit --jsx react-native --esModuleInterop --moduleResolution node --target es2020 --module esnext --skipLibCheck --strict)",
+      "Bash(./node_modules/.bin/tsc --noEmit --jsx react-native --esModuleInterop --moduleResolution bundler --target es2020 --module esnext --skipLibCheck --strict App.tsx src/*.ts src/scenarios/*.ts)",
+      "Bash(mkdir -p \"C:/Hackathons/HackMSA/replit_v3\")",
+      "Bash(unzip -oq \"C:/Users/ihsan/Downloads/Hack.MSA-main \\(2\\).zip\")"
     ]
   }
 }

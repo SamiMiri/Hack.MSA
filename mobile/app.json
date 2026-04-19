@@ -1,10 +1,9 @@
 {
   "expo": {
-    "name": "Next Steps",
-    "slug": "next-steps",
+    "name": "Next Step",
+    "slug": "next-step",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "scheme": "nextsteps",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,

@@ -1,0 +1,43 @@
+Build a mobile-first web app that teaches adulting skills via text-based, branching stories with social competition. Deliver a polished demo: start → scenario → AI explanations → completion → optional account → social hub.
+Tech + Setup
+Next.js (App Router), TypeScript, Tailwind CSS, Zustand (state), Supabase (auth, DB, storage).
+Enable email/password auth and anonymous guest mode (localStorage).
+Use mobile-first responsive design.
+Screens & Flow
+Start: welcoming landing with logo + “Start/Play”.
+Character/Scenario Select: cards for Student, Immigrant, Young Professional; each embeds difficulty modifiers (income, visa/language, credit, criminal history as applicable).
+Story Gameplay: 4–6 decision nodes, 2–4 choices each, instant consequence text, progress bar, “Lesson Tip” area for AI response.
+Completion: outcome + key lessons + “Play Again” and “Continue”.
+Account Prompt (post-first run): modal with “Yes, create account” / “Maybe later”.
+Profile Create: username/email/password/confirm; “Skip (guest)”.
+Main Hub (Strava-style): bottom nav with icons
+Home feed, Leaderboard, Play (center prominent), Profile; settings icon top-right.
+Core Features (MVP)
+Scenario Engine: JSON-driven nodes with choices, consequences, nextNode, points, badges.
+Fluid Storytelling: each decision updates state and branches.
+AI Smart Response: after each choice call a server action stub generateExplanation(choice, context) that returns explanation + 1–2 follow-up questions.
+Streaks: daily check (UTC), visual indicator, notifications (in-app for MVP).
+Progress Dashboard: scenarios completed, current streak, badges.
+Social: basic feed (latest completions), weekly leaderboard by streak/completions.
+Auth: register/login/logout; guest progress saved locally and migrated on sign-up.
+Data Model (Supabase)
+users(id, username, email, created_at, role)
+profiles(user_id, streak_count, last_active, badges[], stats)
+scenarios(id, title, topic, character, modifiers JSON, is_premium, prerequisites[])
+scenario_nodes(id, scenario_id, node_key, text, choices JSON)
+progress(user_id, scenario_id, status, current_node, completed_at)
+feed(id, user_id, type, payload, created_at)
+flags(id, content_type, content_id, user_id, reason, status)  // moderation
+Prerequisites Framework
+Gate advanced scenarios via prerequisites[]; enforce in UI with locked states and tooltips.
+Design
+Clean, friendly, game-like; large readable typography for story; animated feedback on choices; consistent Tailwind tokens.
+Acceptance Criteria (Demo)
+One complete “campaign” with 5 decisions, visible consequence chains, AI explanations after each choice, lesson summary.
+Accessible before account creation; smooth flow to account prompt and hub.
+Working streak logic; profile shows streak and completed scenarios.
+Leaderboard displays sample users + current user.
+Content flagging UI (button + create flag record) and admin-only moderation view stub.
+Deliverables
+Seed script for one full scenario with modifiers.
+README with run instructions and how to add scenarios via JSON.
