@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import React from "react";
 import {
   Platform,
@@ -25,7 +25,11 @@ const DEADLINES = [
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { profile, getTrackProgress, completedLessons } = useApp();
+  const { profile, getTrackProgress, completedLessons, onboardingComplete } = useApp();
+
+  if (!onboardingComplete) {
+    return <Redirect href="/start" />;
+  }
 
   const topInset = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const bottomInset = Platform.OS === "web" ? Math.max(insets.bottom, 34) : insets.bottom;
